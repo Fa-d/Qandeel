@@ -14,13 +14,16 @@ class TestNamingArchitectureTest {
 
     private val testDoublePrefixes = listOf("Fake", "Stub", "Recording", "Spy")
 
+    /** Android/JVM modules' test sources, then the multiplatform modules'. */
+    private val testSourceDirs = listOf("/src/test/", "/src/commonTest/", "/src/jvmTest/", "/src/androidUnitTest/")
+
     @Test
     fun `classes declared in test source sets are tests or named test doubles`() {
         val violations = Konsist
             .scopeFromProject()
             .files
             .filter { "/build/" !in it.path }
-            .filter { "/src/test/" in it.path }
+            .filter { file -> testSourceDirs.any { it in file.path } }
             .filterNot { it.path.contains("/core/testing/") }
             .flatMap { it.classes() }
             .filterNot { it.hasPrivateModifier }

@@ -8,6 +8,8 @@ complexity:
     # Test bodies are given more room (arrange/act/assert reads better unsplit).
     excludes:
       - '**/test/**'
+      - '**/jvmTest/**'
+      - '**/commonTest/**'
       - '**/androidTest/**'
   LongParameterList:
     # State parameters + lambdas pile up in composable signatures by design.
@@ -17,6 +19,8 @@ complexity:
   StringLiteralDuplication:
     excludes:
       - '**/test/**'
+      - '**/jvmTest/**'
+      - '**/commonTest/**'
       - '**/androidTest/**'
 
 naming:
@@ -31,9 +35,12 @@ style:
     ignoreAnnotated: ['Composable', 'Preview']
     excludes:
       - '**/test/**'
+      - '**/jvmTest/**'
+      - '**/commonTest/**'
       - '**/androidTest/**'
       # Design tokens are the named numbers everything else refers to.
       - '**/core/designsystem/src/main/**'
+      - '**/shared/src/commonMain/kotlin/dev/sadakat/qandeel/shared/designsystem/**'
   ForbiddenComment:
     # Leftover TODO:/FIXME:/STOPSHIP: comments must not ship.
     active: true
