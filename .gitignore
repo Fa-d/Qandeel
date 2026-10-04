@@ -106,3 +106,4 @@ __pycache__/
 
 # Release signing (see keystore.properties.example)
 keystore.properties
+.kotlin/

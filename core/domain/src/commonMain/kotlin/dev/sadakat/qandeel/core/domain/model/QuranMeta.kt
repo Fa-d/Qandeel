@@ -41,9 +41,7 @@ object QuranMeta {
     /** Inverse of [globalAyah]: the surah and verse of global ayah [globalAyah] (1..6236). */
     fun ayahRef(globalAyah: Int): AyahRef {
         require(globalAyah in 1..TOTAL_AYAHS) { "Invalid global ayah $globalAyah" }
-        val found = FIRST_AYAH.binarySearch(globalAyah)
-        // Not a surah's first ayah: binarySearch returns -(insertion point) - 1, one past its surah.
-        val surahIndex = if (found >= 0) found else -(found + 1) - 1
+        val surahIndex = FIRST_AYAH.lastIndexAtMost(globalAyah)
         return AyahRef(surahIndex + 1, globalAyah - FIRST_AYAH[surahIndex] + 1)
     }
 
@@ -69,8 +67,21 @@ object QuranMeta {
     /** The juz [surah]:[ayah] belongs to; ayah 0 (a surah's basmala) counts as the surah's first ayah. */
     fun juzOf(surah: Int, ayah: Int): Int {
         val global = globalAyah(surah, ayah.coerceAtLeast(1))
-        // Index of the last juz starting at or before the ayah.
-        val found = JUZ_FIRST_GLOBAL.binarySearch(global)
-        return if (found >= 0) found + 1 else -(found + 1)
+        // The last juz starting at or before the ayah.
+        return JUZ_FIRST_GLOBAL.lastIndexAtMost(global) + 1
+    }
+
+    /**
+     * Index of the last element at most [value] in this ascending array, whose first element is at
+     * most [value]: a binary search, written out because `IntArray.binarySearch` is JVM-only.
+     */
+    private fun IntArray.lastIndexAtMost(value: Int): Int {
+        var low = 0
+        var high = size - 1
+        while (low < high) {
+            val mid = (low + high + 1) ushr 1
+            if (this[mid] <= value) low = mid else high = mid - 1
+        }
+        return low
     }
 }

@@ -10,8 +10,11 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.android.kotlin.multiplatform.library) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.baselineprofile) apply false
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.spotless) apply false
@@ -59,11 +62,18 @@ subprojects {
         buildUponDefaultConfig = true
         config.setFrom(rootProject.file("config/detekt/detekt.yml"))
         parallel = true
+        // The Android/JVM modules' source sets, then the multiplatform ones.
         source.setFrom(
             "src/main/java",
             "src/main/kotlin",
             "src/test/java",
             "src/test/kotlin",
+            "src/commonMain/kotlin",
+            "src/commonTest/kotlin",
+            "src/androidMain/kotlin",
+            "src/jvmMain/kotlin",
+            "src/jvmTest/kotlin",
+            "src/iosMain/kotlin",
         )
     }
 
@@ -121,6 +131,7 @@ data class CoverageFloor(val lines: Int, val branches: Int)
 
 val coverageFloors = mapOf(
     ":core:domain" to CoverageFloor(lines = 96, branches = 92),
+    ":shared" to CoverageFloor(lines = 90, branches = 45),
     ":core:data" to CoverageFloor(lines = 91, branches = 76),
     ":core:designsystem" to CoverageFloor(lines = 94, branches = 45),
     ":core:ui" to CoverageFloor(lines = 80, branches = 45),
@@ -150,7 +161,8 @@ fun KoverReportFiltersConfig.excludeGeneratedAndGlue() {
             "*_Impl",
             "*_Impl$*",
         )
-        packages("hilt_aggregated_deps", "dagger")
+        // Compose Multiplatform's generated resource accessors (Res).
+        packages("hilt_aggregated_deps", "dagger", "dev.sadakat.qandeel.shared.resources")
         annotatedBy("androidx.compose.ui.tooling.preview.Preview")
         // Android entry points (activities, services, the application) are thin system glue,
         // exercised on devices rather than by unit tests. Matched by their Hilt annotation: Hilt
@@ -169,6 +181,7 @@ fun KoverReportFiltersConfig.excludeGeneratedAndGlue() {
 // below never triggers `testReleaseUnitTest`.
 dependencies {
     kover(project(":core:domain"))
+    kover(project(":shared"))
     kover(project(":core:data"))
     kover(project(":core:designsystem"))
     kover(project(":core:ui"))
@@ -207,15 +220,20 @@ tasks.register("qualityGate") {
         ":core:designsystem:lintDebug",
         ":core:ui:lintDebug",
         // Unit tests, including screenshot verification (debug variant only for the Android modules).
-        ":core:domain:test",
+        ":core:domain:jvmTest",
+        ":shared:jvmTest",
         ":core:data:testDebugUnitTest",
         ":core:designsystem:testDebugUnitTest",
         ":core:ui:testDebugUnitTest",
         ":app:testDebugUnitTest",
         ":wear:testDebugUnitTest",
         ":architecture-test:test",
+        // The iOS sources compile (klibs cross-compile on any host; linking the framework needs macOS).
+        ":core:domain:compileKotlinIosSimulatorArm64",
+        ":shared:compileKotlinIosSimulatorArm64",
         // Coverage: every module's own floors, then the aggregate.
         ":core:domain:koverVerify",
+        ":shared:koverVerify",
         ":core:data:koverVerifyDebug",
         ":core:designsystem:koverVerifyDebug",
         ":core:ui:koverVerifyDebug",

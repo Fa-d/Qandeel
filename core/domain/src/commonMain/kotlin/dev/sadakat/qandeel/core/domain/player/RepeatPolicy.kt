@@ -1,5 +1,7 @@
 package dev.sadakat.qandeel.core.domain.player
 
+import kotlin.jvm.JvmInline
+
 /** What happens when an ayah finishes. */
 sealed interface RepeatStep {
     /** Carry on to the next ayah. */

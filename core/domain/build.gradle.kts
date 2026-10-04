@@ -1,24 +1,27 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// Pure Kotlin: the compiler guarantees the domain never touches Android or the data layer.
+// Pure Kotlin, multiplatform: the compiler guarantees the domain never touches Android or the data
+// layer, and the same models and logic run on Android (through the JVM target) and on iOS.
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kover)
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
 kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+    jvm {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
-}
+    iosArm64()
+    iosSimulatorArm64()
 
-dependencies {
-    api(libs.kotlinx.coroutines.core)
-
-    testImplementation(project(":core:testing"))
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.core)
+        }
+        jvmTest.dependencies {
+            implementation(project(":core:testing"))
+        }
+    }
 }

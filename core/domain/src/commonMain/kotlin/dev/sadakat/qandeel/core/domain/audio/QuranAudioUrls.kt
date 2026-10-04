@@ -2,7 +2,6 @@ package dev.sadakat.qandeel.core.domain.audio
 
 import dev.sadakat.qandeel.core.domain.model.QuranMeta
 import dev.sadakat.qandeel.core.domain.model.Track
-import java.util.Locale
 
 /**
  * Where each verse's audio lives.
@@ -73,8 +72,9 @@ object QuranAudioUrls {
         return "$EVERYAYAH/$folder/${threeDigits(ref.surah)}${threeDigits(ref.ayah)}.mp3"
     }
 
-    // Locale.ROOT: a Bangla-locale device would otherwise format Bengali digits.
-    private fun fiveDigits(n: Int) = String.format(Locale.ROOT, "%05d", n)
+    // Int.toString() always writes ASCII digits, whatever the device's locale (a Bangla-locale
+    // String.format would write Bengali ones).
+    private fun fiveDigits(n: Int) = n.toString().padStart(length = 5, padChar = '0')
 
-    private fun threeDigits(n: Int) = String.format(Locale.ROOT, "%03d", n)
+    private fun threeDigits(n: Int) = n.toString().padStart(length = 3, padChar = '0')
 }

@@ -17,8 +17,9 @@ Run it locally before pushing; CI (`.github/workflows/ci.yml`) runs the same com
 | Formatting | `spotlessCheck` (every subproject) | Kotlin + `.gradle.kts` follow ktlint (`intellij_idea` style, 120 cols) plus Compose rules (`io.nlopez.compose.rules`). Config lives in `.editorconfig`. | `./gradlew spotlessApply` |
 | Static analysis | `detekt` (every subproject) | No code smells / leftover `TODO:`/`FIXME:` comments. Overrides in `config/detekt/detekt.yml`. | Read `<module>/build/reports/detekt/detekt.txt`, fix the code (never suppress wholesale). |
 | Android Lint | `lintDebug` on `:app`, `:wear`, `:core:data`, `:core:designsystem` | Lint errors (`abortOnError = true`; version-nag checks disabled). | `<module>/build/reports/lint-results-debug.html` |
-| Unit, UI and screenshot tests | `:core:domain:test`, `testDebugUnitTest` on `:core:data`, `:core:designsystem`, `:app`, `:wear` | All JVM/Robolectric tests pass, every screenshot matches its golden, and the screenshot tests' accessibility checks find no errors. | `<module>/build/reports/tests/...`; for screenshots see below. |
+| Unit, UI and screenshot tests | `:core:domain:jvmTest`, `:shared:jvmTest`, `testDebugUnitTest` on `:core:data`, `:core:designsystem`, `:app`, `:wear` | All JVM/Robolectric tests pass, every screenshot matches its golden, and the screenshot tests' accessibility checks find no errors. | `<module>/build/reports/tests/...`; for screenshots see below. |
 | Architecture | `:architecture-test:test` | Konsist rules: domain purity, presentation isolation (no data layer, no Media3), ViewModel/UiState shape, `*Test` naming, design tokens only (no color or dp/sp literals in app or kit code), reference palettes read by theme code only, one font source, one Material library per app, screens build their containers from the `:core:ui` kit (`KitUsageTest`: only allowlisted Material names, Haze only in the kit's glass, no code that asks which style is on). | `architecture-test/src/test/kotlin/...` states each rule. |
+| iOS compiles | `compileKotlinIosSimulatorArm64` on `:core:domain` and `:shared` | The multiplatform code compiles for iOS (klibs cross-compile on Linux; linking the framework needs macOS). | The compiler names the JVM-only API used in common code. |
 | Coverage | `koverVerify` per module + root `:koverVerify` | Line **and** branch floors for every module and for the aggregate (see below). | `./gradlew :koverHtmlReport` then open `build/reports/kover/html/index.html`. |
 
 ### Coverage floors
@@ -28,6 +29,7 @@ Set in `coverageFloors` in the root `build.gradle.kts` (lines / branches, %):
 | Scope | Floor |
 | --- | --- |
 | `:core:domain` | 96 / 92 |
+| `:shared` | 90 / 45 |
 | `:core:data` | 91 / 76 |
 | `:core:designsystem` | 94 / 45 |
 | `:core:ui` | 80 / 45 |
@@ -68,6 +70,9 @@ Roborazzi renders composables under Robolectric and compares them with the golde
 - After an intended UI change, re-record and review the PNGs before committing:
   `./gradlew recordRoborazziDebug` (or `:app:recordRoborazziDebug --tests '*HomeScreenshotTest*'`).
   A failed comparison leaves compare images under `<module>/build/outputs/roborazzi/`.
+- `:shared` (the multiplatform UI) renders its goldens on Compose Desktop instead, through Skia as
+  iOS does: `runDesktopComposeUiTest { … onRoot().captureRoboImage("src/jvmTest/screenshots/x.png") }`
+  in `src/jvmTest`, recorded with `./gradlew :shared:recordRoborazziJvm`.
 - Small anti-aliasing differences between machines are tolerated (1 %). If CI's Linux rendering
   drifts further, run the CI workflow by hand with **record** checked and commit the goldens from
   its artifact.
