@@ -14,13 +14,16 @@ flowchart TD
     ds[":core:designsystem — design tokens and looks (Compose UI only)"]
     ui[":core:ui — phone UI kit: Material mapping, glass, containers"]
     data[":core:data — adapters (Android library)"]
-    domain[":core:domain — models, pure logic, ports (pure Kotlin/JVM)"]
+    shared[":shared — the multiplatform phone UI (Compose Multiplatform: Android, iOS)"]
+    domain[":core:domain — models, pure logic, ports (Kotlin Multiplatform: JVM, iOS)"]
     testing[":core:testing — fakes + sample data (test only)"]
     arch[":architecture-test — Konsist rules (test only)"]
 
     app --> data
     app --> domain
     app --> ui
+    app --> shared
+    shared --> domain
     ui --> ds
     wear --> data
     wear --> domain

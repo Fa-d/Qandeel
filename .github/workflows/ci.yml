@@ -40,14 +40,16 @@ jobs:
 
       - name: Record screenshot goldens
         if: ${{ inputs.record }}
-        run: ./gradlew recordRoborazziDebug
+        run: ./gradlew recordRoborazziDebug :shared:recordRoborazziJvm
 
       - name: Upload recorded goldens
         if: ${{ inputs.record }}
         uses: actions/upload-artifact@v4
         with:
           name: screenshot-goldens
-          path: '**/src/test/screenshots/*.png'
+          path: |
+            **/src/test/screenshots/*.png
+            shared/src/jvmTest/screenshots/*.png
 
       - name: Upload reports on failure
         if: failure()

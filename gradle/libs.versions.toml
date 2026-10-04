@@ -37,6 +37,9 @@ roborazzi = "1.75.0"
 # Glass style: backdrop blur
 haze = "1.7.3"
 
+# Compose Multiplatform: the shared phone UI (Android, iOS, and the JVM for screenshot tests)
+composeMultiplatform = "1.12.1"
+
 # Startup performance
 benchmark = "1.5.0"
 profileinstaller = "1.4.1"
@@ -128,6 +131,14 @@ androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiaut
 # Glass style: backdrop blur (API 31+, a tinted scrim below)
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 
+# Compose Multiplatform
+cmp-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "composeMultiplatform" }
+cmp-foundation = { group = "org.jetbrains.compose.foundation", name = "foundation", version.ref = "composeMultiplatform" }
+cmp-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "composeMultiplatform" }
+cmp-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
+cmp-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test", version.ref = "composeMultiplatform" }
+roborazzi-compose-desktop = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose-desktop", version.ref = "roborazzi" }
+
 # Quality tooling
 konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist" }
 
@@ -135,8 +146,11 @@ konsist = { group = "com.lemonappdev", name = "konsist", version.ref = "konsist"
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "benchmark" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

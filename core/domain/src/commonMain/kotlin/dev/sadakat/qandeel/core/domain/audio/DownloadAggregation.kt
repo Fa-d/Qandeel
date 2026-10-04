@@ -76,9 +76,10 @@ object DownloadAggregation {
      * downloaded earlier count as done, and it never jumps back when the next file starts.
      */
     fun batchProgress(active: Map<String, Float>): DownloadBatch {
-        val pairs = active.keys.flatMapTo(sortedSetOf(compareBy({ it.first }, { it.second }))) { id ->
-            pairsContaining(id).filter { id in ownIdsByPair.getValue(it) }
-        }
+        val pairs = active.keys
+            .flatMap { id -> pairsContaining(id).filter { id in ownIdsByPair.getValue(it) } }
+            .distinct()
+            .sortedWith(compareBy({ it.first }, { it.second }))
         if (pairs.isEmpty()) return DownloadBatch(emptyList(), 1f)
         var total = 0
         var pending = 0f
