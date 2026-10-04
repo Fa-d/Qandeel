@@ -74,7 +74,7 @@ object QuranAudioUrls {
 
     // Int.toString() always writes ASCII digits, whatever the device's locale (a Bangla-locale
     // String.format would write Bengali ones).
-    private fun fiveDigits(n: Int) = n.toString().padStart(5, '0')
+    private fun fiveDigits(n: Int) = n.toString().padStart(length = 5, padChar = '0')
 
-    private fun threeDigits(n: Int) = n.toString().padStart(3, '0')
+    private fun threeDigits(n: Int) = n.toString().padStart(length = 3, padChar = '0')
 }
