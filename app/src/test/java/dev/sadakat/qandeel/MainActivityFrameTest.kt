@@ -3,7 +3,6 @@ package dev.sadakat.qandeel
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Looper
-import androidx.compose.ui.graphics.toArgb
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dagger.Module
@@ -23,9 +22,6 @@ import dev.sadakat.qandeel.core.data.player.ExoQuranPlayer
 import dev.sadakat.qandeel.core.data.settings.DataStoreQuranSettings
 import dev.sadakat.qandeel.core.data.text.AssetQuranText
 import dev.sadakat.qandeel.core.data.text.AssetWordMeanings
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelSkins
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelStyle
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelTone
 import dev.sadakat.qandeel.core.domain.model.ReadingPrefs
 import dev.sadakat.qandeel.core.domain.model.ThemeMode
 import dev.sadakat.qandeel.core.domain.player.QuranPlayer
@@ -70,15 +66,15 @@ class MainActivityFrameTest {
 
     @Test
     fun `the first composed frame keeps the window the settings painted`() {
-        // Robolectric's day mode is the light system: onCreate paints the dark page of the saved
-        // dark theme, and the first composed frame — still on the state-in placeholder
-        // (SYSTEM/MUSHAF, not ready) — must not repaint it with the bright paper.
+        // Robolectric's day mode is the light system: onCreate paints the night sky of the saved
+        // dark theme, and the first composed frame, before the settings arrive, must not repaint
+        // it with the dawn.
         val activity = Robolectric.buildActivity(MainActivity::class.java)
             .create().start().resume().visible().get()
 
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(
-            QandeelSkins.of(QandeelStyle.MUSHAF, QandeelTone.DARK).colors.background.toArgb(),
+            ThemeMode.DARK.windowColor(systemNight = false),
             pageColor(activity),
         )
 
@@ -87,14 +83,14 @@ class MainActivityFrameTest {
         settings.release.complete(Unit)
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(
-            QandeelSkins.of(QandeelStyle.MUSHAF, QandeelTone.DARK).colors.background.toArgb(),
+            ThemeMode.DARK.windowColor(systemNight = false),
             pageColor(activity),
         )
 
         runBlocking { settings.updateReadingPrefs { it.copy(themeMode = ThemeMode.SEPIA) } }
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals(
-            QandeelSkins.of(QandeelStyle.MUSHAF, QandeelTone.SEPIA).colors.background.toArgb(),
+            ThemeMode.SEPIA.windowColor(systemNight = false),
             pageColor(activity),
         )
     }

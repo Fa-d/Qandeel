@@ -12,8 +12,9 @@ complexity:
       - '**/commonTest/**'
       - '**/androidTest/**'
   LongParameterList:
-    # State parameters + lambdas pile up in composable signatures by design.
-    ignoreAnnotated: ['Composable']
+    # State parameters + lambdas pile up in composable signatures by design, and an injected
+    # constructor's length is the wiring it receives.
+    ignoreAnnotated: ['Composable', 'Inject']
   TooManyFunctions:
     ignorePrivate: true
   StringLiteralDuplication:

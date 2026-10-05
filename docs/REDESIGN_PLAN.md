@@ -14,6 +14,8 @@ so the same UI ships on iOS. Wear OS keeps its own UI.
 | Styles | **One signature look.** The Mushaf, Material, Expressive and Glass styles and the Appearance style picker go away. What remains is Theme (Auto, Light, Dark) and Reduce motion. |
 | Navigation | **3 tabs + floating player:** Home, Quran, You. The reader and the full player open over the tabs. |
 | Onboarding | Listening setup, reading comfort, look and motion, offline and watch. Every step can be skipped and changed later. |
+| Reader while playing (Phase 4) | **Lyrics mode.** While its surah plays, the reader keeps the reciting ayah on a line in the upper third, lit, with the gold word pointer, and fades the others back. Scrolling away pauses it; a chip brings it back. |
+| Full player (Phase 4) | **The ayah only.** Full screen and centred on the ayah (Arabic with the word pointer, the recited word's meaning, the translation). The lantern stays behind it as a soft glow that swells with each recited word, not as a hero. |
 | Scope | **Reorganize only.** No new features: ayah of the day, bookmarks and a downloads manager are out of scope. |
 | Delivery | **One PR per phase** (below). |
 
@@ -40,9 +42,9 @@ Where every existing feature goes:
 | Reading settings sheet (size, translation, follow along, voice, word by word, theme) | You › Settings, grouped as Listening, Reading and Appearance. The reader keeps a quick "Aa" sheet with size, translation and word by word only |
 | Appearance screen (style grid, tone, wallpaper colors) | You › Settings › Appearance: Theme and Reduce motion. On Android, wallpaper colors are dropped because the look is fixed |
 | About | You › About |
-| Reader overflow: download, remove download, send to watch | Reader top bar: one offline button with its state, and send to watch in the overflow |
+| Reader overflow: download, remove download, send to watch | Reader header: one offline button with its state; send to watch in the top bar's overflow |
 | Mini player | Floating pill above the tab bar, with a progress ring |
-| Full player sheet | Full-screen immersive player: the lamp, the ayah with the word pointer, the surah bar, transport, then mode, voice, repeat, speed and sleep in one options row |
+| Full player sheet | Full-screen immersive player: the ayah with the word pointer over the lantern's soft glow, the surah bar, transport, then mode and voice, repeat, speed and sleep in one options row |
 
 ## The Celestial design language
 
@@ -78,7 +80,7 @@ Where every existing feature goes:
 :core:data          KMP: commonMain (parsers, Room, DataStore, settings, history, text)
                          androidMain (ExoPlayer, Media3 downloads, watch messages)
                          iosMain (AVQueuePlayer, URLSession downloads, MPNowPlayingInfoCenter)
-:core:designsystem  Android: the Mushaf tokens Wear uses (trimmed in Phase 4)
+:core:designsystem  Android: the Mushaf tokens Wear uses (kept for Wear; the phone no longer uses it)
 :shared             KMP + Compose: Celestial design system (tokens, sky, stars, lamp, kit), screens +
                     ViewModels (onboarding, home, quran, you, reader, player), strings in
                     composeResources; produces the iOS framework "Shared"
@@ -128,7 +130,7 @@ start, and the Android-only code stays where it is until something replaces it.
   rebuilt.
 
 ### Phase 3: Onboarding
-- `onboardingCompleted` and `reduceMotion` in `QuranSettings` (DataStore, migration-safe defaults).
+- `onboardingDone` and `reduceMotion` in `QuranSettings` (DataStore, migration-safe defaults).
 - Five pages over the live sky: Welcome (the lamp lights up) → Listening (mode + Bangla voice with
   a 5 s sample per voice) → Reading (size slider with a live ayah, translation, word by word) →
   Look & motion (theme, Reduce motion, previewed on the lamp) → Offline & watch (download a starter
@@ -146,6 +148,20 @@ start, and the Android-only code stays where it is until something replaces it.
 - Update the baseline profile journey and re-measure startup.
 - **Ask:** any trade-offs in the reader layout that come up (for example, the density of word by
   word).
+
+Shipped in two PRs:
+
+- **4a:** the three tabs (Home, Quran, You) with the floating mini player; Home, Quran, You and
+  Progress rebuilt in `:shared`, with `SettingsViewModel` merging the reading and appearance
+  settings.
+- **4b:** the reader with lyrics mode, the immersive full player (the ayah, with the lantern as a
+  soft glow), About, and the whole navigation in `:shared` (`QandeelApp`, `@Serializable` routes,
+  `QandeelGraph`). `:app` is now a shell: `MainActivity` hosts `QandeelApp`, and Hilt's
+  `AndroidQandeelGraph` provides the ports. The old screens, their ViewModels, tests and goldens,
+  `:core:ui`, the four styles, the Appearance screen and wallpaper colors are deleted. The baseline
+  profile journey skips onboarding and walks the tabs, the reader and the player.
+- Not done: shared-element transitions (the full player slides up over the tabs), and trimming
+  `:core:designsystem` (it still holds the old skins, used only by its own tests).
 
 ### Phase 5: iOS
 - Convert `:core:data` to KMP: the parsers, Room (KMP, bundled SQLite), DataStore (KMP) and

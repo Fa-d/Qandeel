@@ -1,6 +1,7 @@
 package dev.sadakat.qandeel
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -17,30 +18,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.toDrawable
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelSkins
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelStyle
-import dev.sadakat.qandeel.core.designsystem.skin.QandeelTone
-import dev.sadakat.qandeel.core.domain.player.QuranPlayer
-import dev.sadakat.qandeel.core.domain.repository.QuranSettings
-import dev.sadakat.qandeel.core.domain.repository.SurahDownloads
-import dev.sadakat.qandeel.core.domain.repository.WatchConnection
-import dev.sadakat.qandeel.presentation.AppViewModel
-import dev.sadakat.qandeel.presentation.QuranApp
-import dev.sadakat.qandeel.presentation.appearance.tone
-import dev.sadakat.qandeel.shared.presentation.onboarding.OnboardingRoute
-import dev.sadakat.qandeel.shared.presentation.onboarding.OnboardingViewModel
-import dev.sadakat.qandeel.ui.theme.QandeelAppTheme
-import dev.sadakat.qandeel.ui.theme.toQandeelStyle
+import dev.sadakat.qandeel.core.domain.model.ThemeMode
+import dev.sadakat.qandeel.shared.app.QandeelApp
+import dev.sadakat.qandeel.shared.app.QandeelPlatform
+import dev.sadakat.qandeel.shared.designsystem.CelestialPalette
+import dev.sadakat.qandeel.shared.presentation.onboarding.isNight
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
+/**
+ * The phone's one activity: it hosts the shared app ([QandeelApp]) and does for it what only
+ * Android can (sharing, asking for notifications), and paints the window the sky's colour the
+ * settings choose, before the first frame and whenever they change.
+ */
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity :
+    ComponentActivity(),
+    QandeelPlatform {
 
     // Notifications show playback controls and download progress; the app works without them.
     private val notificationPermission = registerForActivityResult(
@@ -48,61 +45,39 @@ class MainActivity : ComponentActivity() {
     ) { }
 
     @Inject
-    lateinit var settings: QuranSettings
+    lateinit var graph: AndroidQandeelGraph
 
-    // What onboarding needs: it plays voice samples, starts the starter downloads and reaches the watch.
-    @Inject
-    lateinit var player: QuranPlayer
-
-    @Inject
-    lateinit var downloads: SurahDownloads
-
-    @Inject
-    lateinit var watch: WatchConnection
+    override val versionName: String = BuildConfig.VERSION_NAME
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val settings = graph.settings
         val prefs = runBlocking { settings.readingPrefs.first() }
-        applyTone(prefs.themeMode.tone(systemDark = isSystemNight()), prefs.uiStyle.toQandeelStyle())
+        paintWindow(prefs.themeMode.isNight(isSystemNight()))
 
         // A new install is asked as it finishes onboarding, once it knows what the app is for.
         if (runBlocking { settings.onboardingDone.first() }) askForNotifications()
 
         setContent {
-            val appViewModel: AppViewModel = hiltViewModel()
-            val app by appViewModel.uiState.collectAsStateWithLifecycle()
-            val tone = app.themeMode.tone(systemDark = isSystemInDarkTheme())
-            val style = app.uiStyle.toQandeelStyle()
-            // The state-in placeholder (SYSTEM/MUSHAF) would repaint the window the settings
-            // just painted in onCreate, so only apply once the real settings have arrived.
-            DisposableEffect(app.isReady, tone, style) {
-                if (app.isReady) applyTone(tone, style)
+            val current by settings.readingPrefs.collectAsStateWithLifecycle(null)
+            val night = current?.themeMode?.isNight(isSystemInDarkTheme())
+            // Until the settings arrive the window keeps what onCreate painted.
+            DisposableEffect(night) {
+                if (night != null) paintWindow(night)
                 onDispose {}
             }
-            // Until the settings are read the window's page color shows, so there's no theme flash.
-            if (app.isReady && !app.onboardingDone) {
-                // Done is saved by the ViewModel; the settings then bring the app in.
-                OnboardingRoute(
-                    viewModel = viewModel { OnboardingViewModel(settings, player, downloads, watch) },
-                    onDone = {},
-                    onFinishing = ::askForNotifications,
-                )
-            } else if (app.isReady) {
-                QandeelAppTheme(
-                    dynamicColor = app.dynamicColor,
-                    arabicScale = app.arabicTextSize.scale,
-                    style = style,
-                    tone = tone,
-                ) {
-                    QuranApp()
-                }
-            }
+            QandeelApp(graph, platform = this)
         }
     }
 
+    override fun shareText(text: String) {
+        val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text)
+        startActivity(Intent.createChooser(send, null))
+    }
+
     /** Notifications show playback controls and download progress; asked once, from Android 13. */
-    private fun askForNotifications() {
+    override fun askForNotifications() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED
@@ -111,18 +86,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /** The window's page color and the system bars for one tone of one style. */
-    private fun applyTone(tone: QandeelTone, style: QandeelStyle) {
-        val darkTheme = tone == QandeelTone.DARK
-        window.setBackgroundDrawable(
-            QandeelSkins.of(style, tone).colors.background.toArgb().toDrawable(),
-        )
+    /** The window shows the sky's top until the first frame, and the bars' icons suit it. */
+    private fun paintWindow(night: Boolean) {
+        val palette = if (night) CelestialPalette.night else CelestialPalette.dawn
+        window.setBackgroundDrawable(palette.sky.top.toArgb().toDrawable())
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
-            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { darkTheme },
+            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { night },
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { night },
         )
     }
 
     private fun isSystemNight(): Boolean = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
         Configuration.UI_MODE_NIGHT_YES
 }
+
+/** For tests: the theme mode's sky colour at the top, as the window paints it. */
+internal fun ThemeMode.windowColor(systemNight: Boolean): Int =
+    (if (isNight(systemNight)) CelestialPalette.night else CelestialPalette.dawn).sky.top.toArgb()

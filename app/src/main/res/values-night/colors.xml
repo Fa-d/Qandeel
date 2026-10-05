@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- QandeelPalettes neutral 6 (night page). -->
-    <color name="qandeel_window_background">#FF16130D</color>
+    <!-- The Celestial night sky at the top (CelestialPalette.night.sky.top). -->
+    <color name="qandeel_window_background">#FF0A1036</color>
 </resources>

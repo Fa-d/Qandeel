@@ -54,17 +54,17 @@ their UiState **and** keep the latest value in a field for synchronous actions (
 
 ```
 Reader "send to watch" ──> SurahReaderViewModel.sendToWatch()
-  └─ WatchConnection (interface, :app)
+  └─ WatchConnection (domain port, core/domain .../repository/)
        └─ WatchLink: capability qandeel_watch_app → nodes → sendMessage(/quran/download, JSON)
             watch: QuranMessageService.onMessageReceived
               └─ handleQuranMessage → SurahDownloads.download(surah, tracks)
 ```
 
-Result surfaces as a one-shot `ReaderMessage` snackbar (`SentToWatch(count)` / `NoWatch`).
+Result surfaces as a one-shot `ReaderMessage` toast (`SentToWatch(count)` / `NoWatch`).
 
 ## One-shot messages and errors
 
-Transient signals (reader snackbars, player-bar errors) are a `MutableStateFlow<Message?>` **inside
+Transient signals (reader toasts, playback errors) are a `MutableStateFlow<Message?>` **inside
 the ViewModel** (never public); the UiState carries the value and the UI calls a `consumeMessage()`
 / `consumeError()` function to clear it.
 

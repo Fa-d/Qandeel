@@ -3,6 +3,9 @@
 
 package dev.sadakat.qandeel.shared.designsystem
 
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -120,6 +123,11 @@ private fun rememberFrameClock(running: Boolean): CelestialClock {
 private fun clockOf(state: State<Float>) = CelestialClock { state.value }
 
 private const val NANOS_PER_SECOND = 1_000_000_000f
+
+/** A state change's animation: the default spring, or an instant change with Reduce motion. */
+@Composable
+@ReadOnlyComposable
+fun <T> motionSpec(): AnimationSpec<T> = if (Celestial.reduceMotion) snap() else spring()
 
 /** [style] in [color], for the many places that only change a style's colour. */
 internal fun TextStyle.inColor(color: androidx.compose.ui.graphics.Color) = copy(color = color)

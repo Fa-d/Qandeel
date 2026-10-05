@@ -2,48 +2,46 @@
 
 Qandeel is a Quran player for phone and Wear OS, built as clean architecture with ports and adapters.
 The domain is a pure Kotlin island; everything Android (ExoPlayer, DataStore, assets, the Wearable
-data layer) lives in adapters behind interfaces. Both apps (`:app`, `:wear`) are thin presentation
-layers over the same core.
+data layer) lives in adapters behind interfaces. The phone's UI is written once, for Android and
+iOS, in `:shared` (Compose Multiplatform); `:app` is the Android shell that hosts it. The watch
+(`:wear`) has its own UI. Both sit on the same core.
 
 ## Modules
 
 ```mermaid
 flowchart TD
-    app[":app — phone UI (Compose, Material 3)"]
+    app[":app — Android shell: MainActivity, playback service, Hilt graph, watch link"]
+    shared[":shared — the phone UI: Celestial design system, screens, ViewModels (Compose Multiplatform: Android, iOS, JVM for tests)"]
     wear[":wear — watch UI + tile (Compose for Wear OS, Material 3)"]
-    ds[":core:designsystem — design tokens and looks (Compose UI only)"]
-    ui[":core:ui — phone UI kit: Material mapping, glass, containers"]
+    ds[":core:designsystem — the watch's design tokens (Compose UI only)"]
     data[":core:data — adapters (Android library)"]
-    shared[":shared — the multiplatform phone UI (Compose Multiplatform: Android, iOS)"]
     domain[":core:domain — models, pure logic, ports (Kotlin Multiplatform: JVM, iOS)"]
     testing[":core:testing — fakes + sample data (test only)"]
     arch[":architecture-test — Konsist rules (test only)"]
 
+    app --> shared
     app --> data
     app --> domain
-    app --> ui
-    app --> shared
     shared --> domain
-    ui --> ds
     wear --> data
     wear --> domain
     wear --> ds
     data --> domain
     testing --> domain
     arch -.->|scans sources of| app
-    arch -.->|scans sources of| ui
+    arch -.->|scans sources of| shared
     arch -.->|scans sources of| wear
     arch -.->|scans sources of| data
     arch -.->|scans sources of| domain
 ```
 
 Dependency rule: **inward only**. `:core:domain` imports nothing from Android or the outer layers
-(enforced by `DomainIsolationTest`); presentation code (`..presentation..`) imports domain ports
-only, never `dev.sadakat.qandeel.core.data` (enforced by `PresentationIsolationTest`). Both tests are
-Konsist rules in `:architecture-test`. `:core:designsystem` depends on nothing of ours and on no
-Material library (`DesignSystemArchitectureTest`), so both apps can share it. The phone's screens
-build their containers from `:core:ui` only (`KitUsageTest`), which is what makes a look a set of
-tokens rather than code in every screen.
+(enforced by `DomainIsolationTest`); presentation code (`..presentation..`, in `:shared` and
+`:wear`) imports domain ports only, never `dev.sadakat.qandeel.core.data` or Media3 (enforced by
+`PresentationIsolationTest`). Both tests are Konsist rules in `:architecture-test`. `:shared`
+depends on `:core:domain` alone, so it compiles for iOS; `:app` hands it the Android adapters
+through `QandeelGraph` (see [The phone UI](#the-phone-ui-shared)). `:core:designsystem` depends on
+nothing of ours and on no Material library (`DesignSystemArchitectureTest`).
 
 ## The domain (`:core:domain`)
 
@@ -63,8 +61,9 @@ where each of the 30 juz starts (`juzStart`, `juzOf`).
 - `RecitationMode` — what plays for each ayah, in order: `ARABIC_ONLY`, `ARABIC_ENGLISH` or
   `ARABIC_BANGLA`.
 - `ReadingPrefs` — the reading settings: `ArabicTextSize` (a scale factor), show translation,
-  follow along, `WordByWord` (the language of each word's meaning, or off), `ThemeMode`, wallpaper
-  colors.
+  follow along, `WordByWord` (the language of each word's meaning, or off), `ThemeMode` and reduce
+  motion. The old style (`UiStyle`) and wallpaper-color (`dynamicColor`) fields are still stored,
+  but no UI reads them.
 - `AyahRefParser` — reads a typed reference ("2:255", "2.255", "২:২৫৫", "٢:٢٥٥") into an `AyahRef`
   when that ayah exists; search uses it to jump.
 - `ArabicWords` — an ayah's words as the word pointer moves over them: whitespace tokens, where a
@@ -109,12 +108,13 @@ where each of the 30 juz starts (`juzStart`, `juzOf`).
 | Port | Package | What it gives |
 | --- | --- | --- |
 | `QuranText` | `repository/` | All surahs and every surah's ayahs (offline, from assets) |
-| `QuranSettings` | `repository/` | `Flow<RecitationMode>`, `Flow<LastPosition?>`, `Flow<ReadingPrefs>` and `Flow<PlaybackSpeed>`, persisted |
+| `QuranSettings` | `repository/` | `Flow<RecitationMode>`, `Flow<BanglaVoice>`, `Flow<LastPosition?>`, `Flow<ReadingPrefs>`, `Flow<PlaybackSpeed>` and `Flow<Boolean>` onboarding done (an update from a version without onboarding counts as done), persisted |
 | `SurahDownloads` | `repository/` | `StateFlow<Map<Int, Map<Track, SurahDownloadState>>>` (surah number → track → state), `download(surah, tracks)`, `remove(surah, tracks)` |
 | `QuranPlayer` | `player/` | `StateFlow<NowPlaying?>` (with speed and repeat), `StateFlow<String?>` error, `StateFlow<SleepTimerStatus>`, `Flow<PlaybackProgress>` (ticks while playing) and `Flow<WordPointer>` (once per word); `play`, `togglePlayPause`, `nextAyah`, `previousAyah`, `seekTo(surahPositionMs)`, `stop`, `restoreLast`, `setRepeat`, `setSpeed`, `setSleepTimer` |
 | `AudioTimings` | `repository/` | Each surah's `WordTimings` by ayah (ayah 0 = the basmala, recited from 1:1's file) and every audio file's length |
 | `WordMeanings` | `repository/` | Each surah's word meanings by ayah in English or Bangla, one per `ArabicWords` word (ayah 0 = the basmala, 1:1's) |
 | `ListeningHistory` | `repository/` | `Flow<ListeningCounts>` (heard counts per ayah, last heard and time per surah, over all devices), `recordHeard`, `addListeningTime`, `localSnapshot`/`importSnapshot` (device sync) and `reset` |
+| `WatchConnection` | `repository/` | `isWatchReachable`, `sendDownload(surah, tracks)` to every reachable watch (an iPhone has none) |
 
 ## The adapters (`:core:data`)
 
@@ -250,9 +250,109 @@ single track (only the Arabic, or only the translation), and shuffle means nothi
 `MediaSession` built in `di/MediaModule.kt`; the watch's `service/QuranPlaybackService` builds the
 same kind of session over its own player instance.
 
-## Design system (`:core:designsystem`)
+## The phone UI (`:shared`)
 
-Design tokens in three layers, shared by the phone (Material 3) and the watch (Wear Material 3):
+`:shared` is Kotlin Multiplatform with Compose Multiplatform, package `dev.sadakat.qandeel.shared`.
+Its targets are `android`, `jvm` (tests only) and `iosArm64`/`iosSimulatorArm64` (the framework
+`Shared`). It uses Compose foundation and no Material library: every control comes from the
+Celestial kit (below). Code that talks to Skia directly lives once in `skikoMain` (iOS and the JVM).
+
+**Wiring** (`app/`):
+
+- `QandeelGraph` — the domain ports the ViewModels are built from (`QuranText`, `QuranSettings`,
+  `SurahDownloads`, `QuranPlayer`, `ListeningHistory`, `AudioTimings`, `WordMeanings`,
+  `WatchConnection`) and the clock. On Android a Hilt `@Singleton` implements it
+  (`AndroidQandeelGraph` in `:app`); on iOS a Kotlin object will. No DI library crosses platforms.
+- `QandeelPlatform` — what only the platform can do: the version name, the share sheet, asking to
+  show notifications. `MainActivity` implements it.
+- `ViewModels.kt` — each ViewModel built from the graph with a `viewModel { }` factory, scoped to
+  the destination that asks for it. The ViewModels are plain classes that take ports.
+- `QandeelApp` — the root. Until the settings are read nothing is drawn, so the first frame has
+  the right sky. A new install gets onboarding (`QuranSettings.onboardingDone`); after it, the
+  `CelestialTheme` the settings choose (night or dawn, reduce motion, the Arabic size) around a
+  `NavHost` (navigation-compose for Compose Multiplatform). Routes are `@Serializable`
+  (`Routes.kt`: `TabsRoute`, `ReaderRoute(surah, ayah)`, `PlayerRoute`, `ProgressRoute`,
+  `AboutRoute`), and `Navigation.kt` binds each to its ViewModels and actions. One
+  `PlayerViewModel` serves the mini player, the full player and the playback-error toast;
+  `MiniPlayerMapping` turns its state into the mini player, or nothing when nothing is queued.
+
+**Screens** (`presentation/`). Each is a stateless composable over its `UiState` and an actions
+class (`HomeTabActions`, `ReaderActions`, `PlayerActions`, …):
+
+- `onboarding/` — five pages over the live sky: welcome, listening (mode and Bangla voice, with a
+  sample), reading, look and motion, offline and watch. Finishing saves every choice and starts the
+  starter downloads; skip keeps the defaults. Updates from a version without onboarding skip it.
+- `main/MainTabs` — the frame: the selected tab (Home, Quran, You), and floating over it the mini
+  player (`MiniPlayerBar`, while something is queued) and the tab bar. Each tab draws its own sky
+  and gets the floating chrome's height as content padding.
+- `home/` — `HomeTab`: the lamp over the wordmark, the continue card, the surahs heard lately and a
+  glance at the whole Quran's progress. `QuranTab`: one search for names, numbers and verse
+  references (`SurahSearch`; "2:255" offers to go straight there), then every surah, the 30 juz, or
+  the surahs on the phone. Both read `HomeViewModel`.
+- `you/` — `YouTab`: a progress card, then the settings grouped as listening (mode, Bangla voice),
+  reading (size, translation, follow along, word by word) and appearance (Theme: Auto, Light or
+  Dark; Reduce motion), then About. `SettingsViewModel` applies each change at once; a change to
+  what plays re-queues the recitation at the same ayah.
+- `progress/` (`ProgressScreen`, `ProgressViewModel`) and `about/` open over the tabs.
+- `reader/` — `ReaderScreen` and `SurahReaderViewModel`. Reading, it is a column of ayahs on the
+  sky, each with its meaning; tap one to play from it, long-press for `AyahActionsSheet` (play from
+  it, repeat it, copy or share it with `AyahShareText`, and its words with their meanings). While
+  its surah plays the reader turns to **lyrics mode**: the reciting ayah glides onto a line in the
+  upper third, lit, with the gold word pointer, and the others fade back (`FollowAlong`: a drag
+  pauses following, a chip jumps back). The header's offline button downloads, retries or removes
+  the surah (removing asks first); the "Aa" sheet sets size, translation and word by word; the
+  overflow sends the surah to the watch. With word by word on, tapping a word plays from it.
+- `player/` — `PlayerScreen`, full-screen and centred on the ayah: the Arabic large with the word
+  pointer, the meaning of the word being recited, and the translation; behind them the lantern as a
+  soft glow that swells with each recited word. Below: `TimeBar` (the whole surah; drag or tap to
+  move, and it names the ayah under the thumb), the transport, and pills for the recitation,
+  repeat, speed and sleep that open their sheets (`PlayerSheets`). `PlayerViewModel` restores the
+  last position, paused, so the mini player is back after a restart.
+- `components/` — `RecitedArabicText` draws the word pointer (the recited word on a pill drawn
+  behind the text, other words by colour, so the text never reflows) and keeps the recited line in
+  view in long ayahs; `WordByWordText` lays an ayah out word by word, each word over its meaning,
+  right to left. Also `SurahRow`, `ScreenHeader` and `CenteredMessage`.
+
+**Resources.** Strings live in `composeResources/values/strings*.xml` and are read as `Res.string`
+(package `dev.sadakat.qandeel.shared.resources`); the fonts (Amiri Quran, Fraunces, Manrope) in
+`composeResources/font/`.
+
+`:app` is the shell around it: `MainActivity` hosts `QandeelApp` and paints the window with the
+sky's top colour before the first frame; the playback service, the Hilt graph and the watch link
+stay Android code.
+
+## The Celestial design system (`:shared`, `designsystem/`)
+
+One look, no styles to choose: a night sky (indigo to deep green, lit by mushaf gold) or the same
+sky at dawn (pale gold over warm paper).
+
+- **Tokens.** `CelestialColors` (`CelestialPalette.night` and `.dawn`: the sky's `SkyColors`, glass
+  and its edge, ink, the gold accent), `CelestialType` (Fraunces for names and titles, Manrope for
+  UI), `QuranType` (Amiri Quran with tall lines for the stacked marks; RTL text direction, so
+  align Arabic right or centre, not "end"), and `CelestialSpacing` and `CelestialShapes`
+  (`CelestialScale.kt`). `CelestialTheme(night, reduceMotion, arabicScale)` provides them, read as
+  `Celestial.colors`, `.type`, `.quran`, `.spacing`, `.shapes` and `.reduceMotion`.
+- **Motion.** `Celestial.clock` (`CelestialClock`) gives the seconds since the sky started. It is
+  read only while drawing, so motion redraws without recomposing. Reduce motion stops it; tests set
+  it to draw any moment.
+- **The sky** (`effects/`). `CelestialSky` is one fragment shader (`SkyShader`): a gradient, a slow
+  nebula, the lamp's glow and three planes of star dust that move apart as the page scrolls.
+  `RuntimeShader` is expect/actual: AGSL on Android 13+, SkSL through Skia on iOS and desktop.
+  Below Android 13 `drawSkyFallback` draws the gradient, glow and stars without the nebula.
+- **The lamp** (`lamp/`). `QandeelLamp` draws the lantern of strings of light (`StringLantern`,
+  projected by `LampGeometry`) in 3D on a Canvas every frame from `LampMotion(time, energy, tilt)`.
+  Energy rises with each recited word.
+- **The kit** (`kit/`). `GlassSurface`; `OctagramBadge` (a surah's number in the rub el hizb, its
+  outline traced as progress); `Controls` (`Glyph`, `GlyphButton`, `PlayButton`, `Eyebrow`,
+  `ProgressLine`); `FloatingBars` (`FloatingTabBar`, `FloatingPlayerBar`); `Inputs` (`SearchField`,
+  `PillTabs`); `Choices` (`PrimaryButton`, `QuietButton`, `ChoiceCard`, `ToggleRow`, `SizeSteps`,
+  `PageDots`); `CelestialIcons` (Qandeel's own line icons); `Sheet` (`CelestialSheet`, a modal glass
+  sheet built on a dialog so it behaves the same on every platform, and its `SheetAction` rows);
+  and `Toast`.
+
+## The watch's design tokens (`:core:designsystem`)
+
+An Android library (Compose UI only) that the watch uses. Design tokens in three layers:
 
 1. **Reference tokens** — `ref/QandeelPalettes`: six tonal palettes generated in the HCT color space
    from the "mushaf" seeds (deep green, sage, illumination gold, warm paper/ink neutrals, error).
@@ -260,80 +360,20 @@ Design tokens in three layers, shared by the phone (Material 3) and the watch (W
    (`DesignSystemArchitectureTest`), and it's the only file allowed color literals.
 2. **Semantic tokens** — `color/QandeelColors` (Material's roles plus `arabicText`, `translationText`,
    `playingAyahHighlight`, the word pointer's `currentWordHighlight` pill and its ink, `ornament`,
-   `progressTrack`, `divider`) for light, dark ("night
-   mushaf") and the watch (OLED black); the scales `QandeelSpacing`, `QandeelRadius`, `QandeelElevation`,
-   `QandeelSizes`, `QandeelMotion`; `QandeelUiType` (serif headings) and `QandeelArabicType` (Amiri Quran, scaled by
-   the text-size setting; RTL text direction, so align Arabic right, not "end").
-3. **Component tokens** — `component/PlayerTokens`, `ReaderTokens`, `KitTokens`, `WearTokens` for
-   sizes that aren't steps of a scale.
+   `progressTrack`, `divider`), including the watch's OLED-black set (`watchQandeelColors`); the
+   scales `QandeelSpacing`, `QandeelRadius`, `QandeelElevation`, `QandeelSizes`, `QandeelMotion`;
+   `QandeelUiType` (serif headings) and `QandeelArabicType` (Amiri Quran, scaled by the text-size
+   setting; RTL text direction, so align Arabic right, not "end").
+3. **Component tokens** — `component/WearTokens` (and the older `PlayerTokens`, `ReaderTokens`,
+   `KitTokens`) for sizes that aren't steps of a scale.
 
-**Looks.** A `skin/QandeelSkin` bundles everything that makes a look: colors, the Latin type scale,
-radii, `QandeelSurfaces` (opaque paper or frosted glass: chrome/sheet/card alphas, blur radius, a light
-hairline edge, a floating inset, the backdrop wash), motion (timed curves, or Material 3 Expressive
-springs) and the number badge (`QandeelBadge`: octagram, circle or cookie, outlined or filled).
-`QandeelSkins.of(style, tone)` gives one of four styles (Mushaf, Material, Expressive, Glass) on one of
-three page tones (light, sepia, dark); Material and Expressive use Material 3's baseline palettes,
-Sepia swaps the page and ink roles for warm paper and keeps each style's accents
-(`withSepiaPage`). The palettes are generated by `scripts/build_palettes.py`. What never changes
-with the look: spacing, sizes, and the Quran's text (its font, size and ink): styles change the
-chrome, not the page.
-
-`QandeelTheme` exposes them (`QandeelTheme.colors`, `.spacing`, `.type`, `.surfaces`, `.badge`, `.arabic`,
-…) from static composition locals that `ProvideQandeelTokens(skin)` sets. Each app maps them onto its
-own MaterialTheme: the phone's `ui/theme/QandeelAppTheme` (the skin of the chosen style and tone, through
-`:core:ui`'s `QandeelMaterialTheme`; with opt-in wallpaper colors, the accents come from the wallpaper
-scheme and the extended roles are derived from them; a sepia page keeps its paper) and the watch's
-`presentation/theme/QandeelWearTheme`; the tile mirrors the watch scheme in ARGB. `ContrastTest` checks
-every drawn-on pair against WCAG (text 4.5:1, the Quran's Arabic 7:1, UI 3:1) and
-`DesignTokenUsageTest` forbids color and dp/sp literals in app and kit code. `ContrastTest` runs
-over every skin, and `GlassContrastTest` checks text on translucent chrome composited over the
-page's extremes, so glass stays readable over whatever scrolls behind it.
-
-## The UI kit (`:core:ui`)
-
-The containers the phone's screens are built from, each drawn from the current skin's tokens, so no
-component (or screen) ever asks which style is on:
-
-- `QandeelAppShell` (the app frame, with the mini player as its bottom bar) hands screens the bottom
-  bar's space as padding, and `QandeelScaffold` runs each screen's content behind its `QandeelTopBar`
-  and the mini player: lists take the padding as content padding. A padded `BringIntoViewSpec`
-  keeps the recited line clear of the bars. A `QandeelPage.READING` page (the reader) never gets the
-  glass look's backdrop wash.
-- `QandeelSurface`, `QandeelCard`, `QandeelBottomBar` (docked, or a floating pill), `QandeelSheet`,
-  `QandeelAlertDialog`, `QandeelMenu`, `QandeelSegmentedToggle` (drops its check mark when space is short and
-  becomes a radio list when labels still don't fit), `QandeelSwitchRow`, `QandeelSearchField`,
-  `QandeelFloatingChip`.
-- **Glass** (`kit/glass/`): `Glass.kt` is the only file that talks to Haze (the backdrop-blur
-  library). Chrome is frosted over the blurred page on Android 12L+; sheets and dialogs are
-  translucent panes over the system's blur-behind. `SurfaceMode` decides how glass is drawn right
-  now: `FROSTED`, `TINTED` (more opaque, where blur is unavailable) or `OPAQUE` (battery saver,
-  high-contrast text, a raised system contrast setting), updated live.
-
-## The phone UI
-
-One home screen, no tabs: the continue card (what's queued, or where listening stopped), search
-(names, numbers, verse references with a "Go to 2:255" row), and surahs or juz. Navigation is
-type-safe (`navigation/QuranDestinations`: home, reader, progress). The mini player is pinned under
-the screens while something is queued (its line reads the surah's progress at draw time); tapping
-or swiping it up opens the full player (`NowPlayingSheet` → stateless `NowPlayingContent`): the ayah
-with the word pointer, `SurahTimeBar` over the whole surah, `TransportRow` (repeat and speed at the
-sides) and `ModeAndSleepRow`. `components/RecitedArabicText` draws the pointer (the word being
-recited on a solid pill drawn behind the text, other words by color, so the text never reflows)
-and brings the recited line into view in long ayahs, in the player and in the reader. With word by
-word on, the reader lays each ayah out with `components/WordByWordText` (each word over its
-meaning, right to left, the current word and its meaning on the pill) and the player shows the
-current word's meaning under the ayah. The reader follows the reciting ayah (`FollowAlong`: a user drag pauses following; a chip jumps
-back) and shows each ayah's heard count. The Progress screen (`progress/`) summarizes what has been
-heard and lists the heard surahs; the reading settings sheet sets size, translation, follow-along,
-word by word and the page tone, and leads on to Appearance (`appearance/`): the style, picked from
-live miniatures of the app in each style (`StylePreview` renders the real theme and kit at half
-size), the page tone and wallpaper colors. Long-pressing an ayah opens its sheet
-(`AyahActionsSheet`): the ayah word by word over its meanings, then play from it, repeat it, copy
-or share it (`AyahSharing`; screen readers get the same as custom actions). With word by word on,
-tapping a word plays from that word. Failed loads offer Retry (`components/LoadError`), and
-playback errors a Retry snackbar.
-`AppViewModel` feeds the reading and appearance settings into `QandeelAppTheme` at the root, so every
-screen reacts.
+`QandeelTheme` exposes them (`QandeelTheme.colors`, `.spacing`, `.type`, `.arabic`, …) from static
+composition locals that `ProvideQandeelTokens` sets. The watch's `presentation/theme/QandeelWearTheme`
+maps them onto Wear Material 3, and the tile mirrors that scheme in ARGB. The module still holds the
+phone's former looks (`skin/`: `QandeelSkin`, `QandeelStyle`), which only its own specimen and
+contrast tests use now. `ContrastTest` checks every drawn-on pair against WCAG (text 4.5:1, the
+Quran's Arabic 7:1, UI 3:1), and `DesignTokenUsageTest` forbids color and dp/sp literals in `:app`
+and `:wear` code outside their theme packages.
 
 ## The watch UI and tile
 
@@ -351,8 +391,9 @@ is in the foreground and may start the playback service. `TileRefresher` request
 
 ## Phone ↔ watch
 
-The reader's "send to watch" action calls `WatchConnection` (an interface in `:app` so the ViewModel
-stays testable). `WatchLink` implements it over the Wearable Data Layer: it looks up reachable
+The reader's "send to watch" action (and onboarding's offline step) calls `WatchConnection`, a
+domain port, so the shared ViewModels stay testable and iOS can say no watch is reachable. The
+phone's `watch/WatchLink` implements it over the Wearable Data Layer: it looks up reachable
 nodes by the `qandeel_watch_app` capability (declared in each app's `res/values/wear.xml`) and sends a
 `QuranDownloadMessage` (`{surah, trackCodes}`, kotlinx.serialization JSON) on the
 `/quran/download` path.
@@ -389,25 +430,32 @@ rising/falling edges so the request isn't churned); it releases the network when
   `AudioTimingParser` and `WordMeaningsParser` are plain functions/objects tested without Android.
   Robolectric tests check every ayah's bundled word timings and word meanings against its text, and
   every queued file's length.
+- **Shared UI on the JVM** — `:shared`'s tests (`src/jvmTest`) run without Android: its
+  ViewModels against the fakes, and its screens as Roborazzi screenshots on Compose Desktop, which
+  draws through Skia as iOS does (`phoneSnapshot`: a phone-sized window with the sky's clock held
+  still). Goldens live in `shared/src/jvmTest/screenshots/` (night and dawn, the reader reading and
+  in lyrics mode, the player); record them with `./gradlew :shared:recordRoborazziJvm` and verify
+  with `:shared:verifyRoborazziJvm`. `LampFramesRecorderTest` writes the sky and lamp's frames for
+  reviewing the motion as a video (only with `LAMP_FRAMES` set).
 - **Robolectric** for everything touching Android (sdk 36, pinned per module in
-  `src/test/resources/robolectric.properties`), including Compose UI tests
-  (`androidx.compose.ui.test.junit4.v2.createComposeRule()`) for the screens.
-- **Screenshot tests** — Roborazzi on Robolectric: every screen in light and dark, a stress variant
-  (largest Arabic, font scale 1.3), and both round watch sizes. Goldens live in
-  `<module>/src/test/screenshots/` and are verified on every test run; the helpers
-  (`dev.sadakat.qandeel.testing.snapshot`, `dev.sadakat.qandeel.wear.testing.wearSnapshot`) also run the
-  accessibility checks (touch targets, contrast, labels).
+  `src/test/resources/robolectric.properties`): `:app`'s activity, services and watch sync, the
+  adapters, and the watch's screens (Compose UI tests).
+- **Android screenshot tests** — Roborazzi on Robolectric for the watch (every screen at both round
+  sizes) and `:core:designsystem`'s specimens. Goldens live in `<module>/src/test/screenshots/` and
+  are verified on every test run; the watch's helper (`dev.sadakat.qandeel.wear.testing.wearSnapshot`)
+  also runs the accessibility checks (touch targets, contrast, labels).
 - **Media3 test utils** (`media3-test-utils-robolectric`: `TestExoPlayerBuilder`,
   `TestPlayerRunHelper`) drive `ExoQuranPlayer` against a real, clock-controlled player in
   `:core:data`'s tests.
 - **Coroutines** — `kotlinx-coroutines-test` (`runTest`) and Turbine (`flow.test { }`).
 - **Architecture tests** — `:architecture-test` holds the Konsist rules: domain purity
   (`DomainIsolationTest`), presentation isolation (`PresentationIsolationTest`), ViewModel shape
-  (one immutable `StateFlow<UiState>`, no `Context`, no public `MutableStateFlow` —
-  `ViewModelArchitectureTest`, `UiStateArchitectureTest`), `*Test` naming
-  (`TestNamingArchitectureTest`), design-token use (`DesignTokenUsageTest`), the design system's
-  purity and single font source (`DesignSystemArchitectureTest`) and one Material library per app
-  (`MaterialLibraryTest`). They read all modules' sources, so after changing another
+  (in a presentation package, `@HiltViewModel` in the Android apps, one immutable
+  `StateFlow<UiState>`, no `Context`, no public `MutableStateFlow` — `ViewModelArchitectureTest`,
+  `UiStateArchitectureTest`), `*Test` naming (`TestNamingArchitectureTest`), design-token use in
+  `:app` and `:wear` (`DesignTokenUsageTest`), the design system's purity and single font source
+  (`DesignSystemArchitectureTest`), and Wear Material 3 only on the watch, no Wear libraries on the
+  phone (`MaterialLibraryTest`). They read all modules' sources, so after changing another
   module's sources force a re-run: `./gradlew :architecture-test:test --rerun-tasks`.
 - **Coverage** — Kover: every module has line and branch floors (`coverageFloors` in the root
   build) plus an aggregate floor; see [QUALITY.md](QUALITY.md).
