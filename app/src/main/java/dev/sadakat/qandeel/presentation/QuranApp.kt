@@ -20,14 +20,15 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.sadakat.qandeel.R
 import dev.sadakat.qandeel.core.designsystem.QandeelTheme
 import dev.sadakat.qandeel.core.ui.kit.QandeelAppShell
 import dev.sadakat.qandeel.presentation.about.AboutRoute
 import dev.sadakat.qandeel.presentation.appearance.AppearanceRoute
-import dev.sadakat.qandeel.presentation.home.HomeRoute
 import dev.sadakat.qandeel.presentation.navigation.AboutDestination
 import dev.sadakat.qandeel.presentation.navigation.AppearanceDestination
 import dev.sadakat.qandeel.presentation.navigation.HomeDestination
@@ -38,13 +39,14 @@ import dev.sadakat.qandeel.presentation.player.NowPlayingActions
 import dev.sadakat.qandeel.presentation.player.NowPlayingSheet
 import dev.sadakat.qandeel.presentation.player.PlayerViewModel
 import dev.sadakat.qandeel.presentation.player.messageRes
-import dev.sadakat.qandeel.presentation.progress.ProgressRoute
 import dev.sadakat.qandeel.presentation.reader.SurahReaderRoute
 import dev.sadakat.qandeel.presentation.settings.ReadingSettingsSheet
+import dev.sadakat.qandeel.shared.presentation.main.MiniPlayerActions
 
 /**
- * Root of the phone UI: home, the reader and progress, the mini player pinned under them whenever
- * something is queued, the full player sliding up from it, and the reading settings sheet.
+ * Root of the phone UI: the three tabs (`:shared`, with their own floating mini player), the reader
+ * and progress, the mini player pinned under the reader whenever something is queued, the full
+ * player sliding up from either, and the reading settings sheet.
  */
 @Composable
 fun QuranApp(modifier: Modifier = Modifier, playerViewModel: PlayerViewModel = hiltViewModel()) {
@@ -60,6 +62,11 @@ fun QuranApp(modifier: Modifier = Modifier, playerViewModel: PlayerViewModel = h
     val openReader: (Int, Int) -> Unit = { surah, ayah ->
         navController.navigate(ReaderDestination(surah, ayah)) { launchSingleTop = true }
     }
+    val openProgress = { navController.navigate(ProgressDestination) { launchSingleTop = true } }
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val onCelestialScreen = backStackEntry?.destination?.let {
+        it.hasRoute<HomeDestination>() || it.hasRoute<ProgressDestination>()
+    } ?: true
 
     // Playback errors (no network for a streaming surah, ...) surface once, then are consumed.
     val playbackError = playerState.error
@@ -82,8 +89,9 @@ fun QuranApp(modifier: Modifier = Modifier, playerViewModel: PlayerViewModel = h
         modifier = modifier.semantics { testTagsAsResourceId = true },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
+            // The tabs and Progress float their own mini player; the older screens keep this one.
             AnimatedVisibility(
-                visible = playerState.nowPlaying != null,
+                visible = playerState.nowPlaying != null && !onCelestialScreen,
                 enter = expandVertically(QandeelTheme.motion.enter()),
                 exit = shrinkVertically(QandeelTheme.motion.exit()),
             ) {
@@ -100,14 +108,19 @@ fun QuranApp(modifier: Modifier = Modifier, playerViewModel: PlayerViewModel = h
         // Screens draw behind the mini player and keep their content clear of it with this padding.
         NavHost(navController = navController, startDestination = HomeDestination) {
             composable<HomeDestination> {
-                HomeRoute(
-                    onOpenReader = openReader,
-                    onOpenProgress = {
-                        navController.navigate(ProgressDestination) { launchSingleTop = true }
-                    },
-                    onOpenReadingSettings = { showReadingSettings = true },
-                    onOpenAppearance = openAppearance,
-                    contentPadding = contentPadding,
+                MainTabsRoute(
+                    player = playerState,
+                    playerActions = MiniPlayerActions(
+                        onTogglePlay = playerViewModel::togglePlayPause,
+                        onNext = playerViewModel::nextAyah,
+                        onExpand = { showNowPlaying = true },
+                    ),
+                    navigation = MainTabsNavigation(
+                        onOpenReader = openReader,
+                        onOpenPlayer = { showNowPlaying = true },
+                        onOpenProgress = openProgress,
+                        onOpenAbout = { navController.navigate(AboutDestination) { launchSingleTop = true } },
+                    ),
                 )
             }
             composable<ReaderDestination> {
@@ -124,11 +137,7 @@ fun QuranApp(modifier: Modifier = Modifier, playerViewModel: PlayerViewModel = h
                 AboutRoute(onBack = { navController.popBackStack() }, contentPadding = contentPadding)
             }
             composable<ProgressDestination> {
-                ProgressRoute(
-                    onBack = { navController.popBackStack() },
-                    onOpenReader = openReader,
-                    contentPadding = contentPadding,
-                )
+                ProgressRoute(onBack = { navController.popBackStack() }, onOpenReader = openReader)
             }
         }
     }

@@ -15,7 +15,7 @@ import dev.sadakat.qandeel.shared.designsystem.Celestial
 /**
  * A pane of glass over the sky: a translucent fill, lit along its top edge and fading to a faint
  * rim below, the way light catches glass held under a lamp. [strong] is for what floats above
- * other glass (the player, the tab bar).
+ * content (the player, the tab bar, dialogs): dense enough to read over what scrolls beneath.
  */
 @Composable
 fun GlassSurface(
@@ -29,7 +29,7 @@ fun GlassSurface(
     Box(
         modifier
             .clip(shape)
-            .background(if (strong) colors.glassStrong else colors.glass)
+            .background(if (strong) colors.chrome else colors.glass)
             .border(
                 width = Celestial.shapes.hairline,
                 brush = Brush.verticalGradient(listOf(colors.glassHighlight, colors.glassEdge)),

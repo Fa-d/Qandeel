@@ -21,7 +21,7 @@ import dev.sadakat.qandeel.core.testing.FakeWatchConnection
 import dev.sadakat.qandeel.core.testing.FakeWordMeanings
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
 import dev.sadakat.qandeel.core.testing.TestQuran
-import dev.sadakat.qandeel.presentation.awaitWhere
+import dev.sadakat.qandeel.core.testing.awaitWhere
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

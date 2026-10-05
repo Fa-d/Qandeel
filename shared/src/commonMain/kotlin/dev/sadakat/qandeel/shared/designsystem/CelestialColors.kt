@@ -36,6 +36,8 @@ data class CelestialColors(
     val glassStrong: Color,
     val glassEdge: Color,
     val glassHighlight: Color,
+    /** What floats over content (the tab bar, the mini player): glass dense enough to read over text. */
+    val chrome: Color,
     val scrim: Color,
     val arabic: Color,
 )
@@ -77,6 +79,7 @@ object CelestialPalette {
         glassStrong = Color(0x29FFFFFF),
         glassEdge = Color(0x24FFFFFF),
         glassHighlight = Color(0x4DF2D08A),
+        chrome = Color(0xF0121A33),
         scrim = Color(0xB3050816),
         arabic = Color(0xFFF7EEDB),
     )
@@ -109,6 +112,7 @@ object CelestialPalette {
         glassStrong = Color(0xCCFFFFFF),
         glassEdge = Color(0x40B8862F),
         glassHighlight = Color(0x99FFFFFF),
+        chrome = Color(0xF5FFFAF1),
         scrim = Color(0x80F6F0E6),
         arabic = Color(0xFF1B1712),
     )

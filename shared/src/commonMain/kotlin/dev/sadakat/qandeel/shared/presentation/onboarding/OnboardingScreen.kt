@@ -175,7 +175,7 @@ fun OnboardingRoute(
 }
 
 /** Dark sky for night, or the phone's dark mode on Auto; dawn for the rest (sepia included). */
-internal fun ThemeMode.isNight(systemDark: Boolean): Boolean = when (this) {
+fun ThemeMode.isNight(systemDark: Boolean): Boolean = when (this) {
     ThemeMode.SYSTEM -> systemDark
     ThemeMode.DARK -> true
     ThemeMode.LIGHT, ThemeMode.SEPIA -> false
@@ -261,7 +261,9 @@ private fun TopBar(page: Int, onSkip: () -> Unit) {
         horizontalArrangement = Arrangement.End,
     ) {
         // Skipping is for those who know what they want; on the last page, finishing is as quick.
-        if (page < ONBOARDING_PAGES - 1) QuietButton(stringResource(Res.string.onboarding_skip), onClick = onSkip)
+        if (page < ONBOARDING_PAGES - 1) {
+            QuietButton(stringResource(Res.string.onboarding_skip), onClick = onSkip, modifier = Modifier.testTag("onboarding_skip"))
+        }
     }
 }
 

@@ -1,5 +1,6 @@
 package dev.sadakat.qandeel.presentation
 
+import dev.sadakat.qandeel.core.testing.awaitWhere
 import app.cash.turbine.test
 import dev.sadakat.qandeel.core.domain.model.ArabicTextSize
 import dev.sadakat.qandeel.core.domain.model.ReadingPrefs

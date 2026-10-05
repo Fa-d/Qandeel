@@ -74,6 +74,24 @@ object CelestialIcons {
         }
     }
 
+    /** Back: a chevron pointing to where you came from. */
+    val Back: ImageVector by lazy {
+        stroked("Back") {
+            moveTo(15f, 5f)
+            lineTo(8f, 12f)
+            lineTo(15f, 19f)
+        }
+    }
+
+    /** Onward: a chevron on rows that open something. */
+    val Chevron: ImageVector by lazy {
+        stroked("Chevron") {
+            moveTo(9f, 5f)
+            lineTo(16f, 12f)
+            lineTo(9f, 19f)
+        }
+    }
+
     /** Filled. */
     val Play: ImageVector by lazy {
         filled("Play") {
