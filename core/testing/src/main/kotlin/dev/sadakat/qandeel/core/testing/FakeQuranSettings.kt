@@ -16,6 +16,7 @@ class FakeQuranSettings(
     readingPrefs: ReadingPrefs = ReadingPrefs(),
     playbackSpeed: PlaybackSpeed = PlaybackSpeed.X1,
     banglaVoice: BanglaVoice = BanglaVoice.DEFAULT,
+    onboardingDone: Boolean = true,
 ) : QuranSettings {
 
     override val mode = MutableStateFlow(mode)
@@ -23,6 +24,7 @@ class FakeQuranSettings(
     override val readingPrefs = MutableStateFlow(readingPrefs)
     override val playbackSpeed = MutableStateFlow(playbackSpeed)
     override val banglaVoice = MutableStateFlow(banglaVoice)
+    override val onboardingDone = MutableStateFlow(onboardingDone)
 
     override suspend fun setMode(mode: RecitationMode) {
         this.mode.value = mode
@@ -42,5 +44,9 @@ class FakeQuranSettings(
 
     override suspend fun setPlaybackSpeed(speed: PlaybackSpeed) {
         playbackSpeed.value = speed
+    }
+
+    override suspend fun setOnboardingDone(done: Boolean) {
+        onboardingDone.value = done
     }
 }

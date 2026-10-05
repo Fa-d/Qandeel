@@ -37,4 +37,12 @@ interface QuranSettings {
     val playbackSpeed: Flow<PlaybackSpeed>
 
     suspend fun setPlaybackSpeed(speed: PlaybackSpeed)
+
+    /**
+     * Whether onboarding is behind the user. Someone updating from a version without onboarding
+     * (who already has settings) counts as done, so only new installs see it.
+     */
+    val onboardingDone: Flow<Boolean>
+
+    suspend fun setOnboardingDone(done: Boolean)
 }

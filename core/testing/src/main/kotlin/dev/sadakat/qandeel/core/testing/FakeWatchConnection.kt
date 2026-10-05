@@ -1,6 +1,7 @@
-package dev.sadakat.qandeel.watch
+package dev.sadakat.qandeel.core.testing
 
 import dev.sadakat.qandeel.core.domain.model.Track
+import dev.sadakat.qandeel.core.domain.repository.WatchConnection
 
 /** [WatchConnection] test double: scripted reachability and result, records what was sent. */
 class FakeWatchConnection : WatchConnection {

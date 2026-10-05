@@ -1,10 +1,10 @@
-package dev.sadakat.qandeel.watch
+package dev.sadakat.qandeel.core.domain.repository
 
 import dev.sadakat.qandeel.core.domain.model.Track
 
 /**
- * The phone's link to the Qandeel watch app. Abstracted so presentation ViewModels can be tested
- * without Google Play services.
+ * The phone's link to the Qandeel watch app (Wear OS, through Google Play services on Android; an
+ * iPhone has none, so there it is never reachable).
  */
 interface WatchConnection {
 

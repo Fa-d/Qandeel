@@ -52,12 +52,16 @@ kotlin {
             api(libs.cmp.foundation)
             api(libs.cmp.ui)
             implementation(libs.cmp.components.resources)
+            api(libs.cmp.lifecycle.viewmodel.compose)
+            implementation(libs.cmp.lifecycle.runtime.compose)
         }
         jvmTest.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.cmp.ui.test)
             implementation(libs.junit)
             implementation(libs.roborazzi.compose.desktop)
+            implementation(project(":core:testing"))
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }

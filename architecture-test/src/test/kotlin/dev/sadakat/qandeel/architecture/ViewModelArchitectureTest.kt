@@ -22,9 +22,12 @@ class ViewModelArchitectureTest {
         }
     }
 
+    // The Android apps' ViewModels come from Hilt. The multiplatform ones (:shared) can't use Hilt,
+    // which is Android only: each platform builds them from the domain ports it injects.
     @Test
-    fun `classes named ViewModel are annotated with HiltViewModel`() {
+    fun `the Android apps' ViewModels are annotated with HiltViewModel`() {
         val violations = viewModels()
+            .filterNot { "/shared/src/" in it.containingFile.path }
             .filterNot {
                 it.hasAnnotationWithName("HiltViewModel", "dagger.hilt.android.lifecycle.HiltViewModel")
             }

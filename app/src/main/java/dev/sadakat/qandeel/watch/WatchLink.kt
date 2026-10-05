@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dev.sadakat.qandeel.core.data.link.QuranDownloadMessage
 import dev.sadakat.qandeel.core.data.link.WearPaths
 import dev.sadakat.qandeel.core.domain.model.Track
+import dev.sadakat.qandeel.core.domain.repository.WatchConnection
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton

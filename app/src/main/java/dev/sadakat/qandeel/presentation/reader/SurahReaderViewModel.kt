@@ -21,9 +21,9 @@ import dev.sadakat.qandeel.core.domain.repository.QuranSettings
 import dev.sadakat.qandeel.core.domain.repository.QuranText
 import dev.sadakat.qandeel.core.domain.repository.SurahDownloadState
 import dev.sadakat.qandeel.core.domain.repository.SurahDownloads
+import dev.sadakat.qandeel.core.domain.repository.WatchConnection
 import dev.sadakat.qandeel.core.domain.repository.WordMeanings
 import dev.sadakat.qandeel.core.domain.repository.stateOf
-import dev.sadakat.qandeel.watch.WatchConnection
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

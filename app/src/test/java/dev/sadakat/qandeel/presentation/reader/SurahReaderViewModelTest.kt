@@ -17,11 +17,11 @@ import dev.sadakat.qandeel.core.testing.FakeQuranPlayer
 import dev.sadakat.qandeel.core.testing.FakeQuranSettings
 import dev.sadakat.qandeel.core.testing.FakeQuranText
 import dev.sadakat.qandeel.core.testing.FakeSurahDownloads
+import dev.sadakat.qandeel.core.testing.FakeWatchConnection
 import dev.sadakat.qandeel.core.testing.FakeWordMeanings
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
 import dev.sadakat.qandeel.core.testing.TestQuran
 import dev.sadakat.qandeel.presentation.awaitWhere
-import dev.sadakat.qandeel.watch.FakeWatchConnection
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
