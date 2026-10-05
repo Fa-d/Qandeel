@@ -122,7 +122,8 @@ fun ProgressRoute(onBack: () -> Unit, onOpenReader: (surah: Int, ayah: Int) -> U
     }
 }
 
-private fun PlayerUiState.miniPlayer(): MiniPlayerUi? = nowPlaying?.let { playing ->
+/** The mini player for what plays, or null when nothing is queued. */
+internal fun PlayerUiState.miniPlayer(): MiniPlayerUi? = nowPlaying?.let { playing ->
     MiniPlayerUi(
         surah = playing.surah,
         surahName = surahName ?: "${playing.surah}",
