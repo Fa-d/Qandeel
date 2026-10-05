@@ -1,4 +1,4 @@
-package dev.sadakat.qandeel.presentation.home
+package dev.sadakat.qandeel.shared.presentation.home
 
 import app.cash.turbine.test
 import dev.sadakat.qandeel.core.domain.model.AyahRef
@@ -13,7 +13,7 @@ import dev.sadakat.qandeel.core.testing.FakeQuranSettings
 import dev.sadakat.qandeel.core.testing.FakeQuranText
 import dev.sadakat.qandeel.core.testing.FakeSurahDownloads
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
-import dev.sadakat.qandeel.presentation.awaitWhere
+import dev.sadakat.qandeel.core.testing.awaitWhere
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -97,6 +97,24 @@ class HomeViewModelTest {
             assertEquals(BrowseMode.SURAH, awaitWhere { !it.isLoading }.browse)
             viewModel.onBrowseChange(BrowseMode.JUZ)
             assertEquals(BrowseMode.JUZ, awaitWhere { it.browse == BrowseMode.JUZ }.browse)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `offline lists the surahs downloaded or downloading for the mode, and search spans them all`() = runTest {
+        settings.setMode(RecitationMode.ARABIC_ONLY)
+        downloads.setState(1, Track.ARABIC, SurahDownloadState.Downloaded)
+        downloads.setState(112, Track.ARABIC, SurahDownloadState.Downloading(completedFiles = 1, totalFiles = 5))
+        downloads.setState(114, Track.ENGLISH, SurahDownloadState.Downloaded)
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitWhere { !it.isLoading }
+            viewModel.onBrowseChange(BrowseMode.OFFLINE)
+            assertEquals(listOf(1, 112), awaitWhere { it.browse == BrowseMode.OFFLINE }.surahs.map { it.surah.number })
+
+            viewModel.onQueryChange("114")
+            assertEquals(listOf(114), awaitWhere { it.query == "114" }.surahs.map { it.surah.number })
             cancelAndIgnoreRemainingEvents()
         }
     }

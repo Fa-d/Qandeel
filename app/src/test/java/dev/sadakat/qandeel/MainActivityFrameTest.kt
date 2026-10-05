@@ -64,7 +64,9 @@ class MainActivityFrameTest {
     @get:Rule
     val hilt = HiltAndroidRule(this)
 
-    private val settings = HeldReadingPrefs(ReadingPrefs(themeMode = ThemeMode.DARK))
+    // Reduce motion stills the Celestial sky's frame clock, which otherwise asks for a frame every
+    // frame: Robolectric's paused looper would never get past it to the recompositions this checks.
+    private val settings = HeldReadingPrefs(ReadingPrefs(themeMode = ThemeMode.DARK, reduceMotion = true))
 
     @Test
     fun `the first composed frame keeps the window the settings painted`() {

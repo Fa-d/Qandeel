@@ -76,4 +76,100 @@
     <string name="onboarding_watch">Also on your watch</string>
     <string name="onboarding_watch_detail">Send the same surahs to Qandeel on your Wear OS watch</string>
     <string name="onboarding_offline_later">Any surah can be downloaded later from the Quran tab.</string>
+
+    <!-- Tabs and the floating player -->
+    <string name="tab_home">Home</string>
+    <string name="tab_quran">Quran</string>
+    <string name="tab_you">You</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_next_ayah">Next ayah</string>
+    <string name="player_open">Open the player</string>
+    <string name="player_bar_subtitle">Ayah %1$d · %2$s</string>
+    <string name="player_bar_basmala">Basmala · %1$s</string>
+
+    <!-- Home -->
+    <string name="home_wordmark">Qandeel</string>
+    <string name="home_wordmark_arabic">قنديل</string>
+    <string name="home_continue_listening">Continue listening</string>
+    <string name="home_now_playing">Now playing</string>
+    <string name="home_card_progress">Ayah %1$d of %2$d</string>
+    <string name="home_begin_title">Begin with Al-Fatiha</string>
+    <string name="home_begin_text">The Opening, seven ayahs, recited in every prayer.</string>
+    <string name="home_recently_heard">Recently heard</string>
+    <string name="home_progress_heard">of the Quran heard</string>
+    <string name="home_progress_line">%1$s listening · %2$d surahs heard</string>
+
+    <!-- Quran tab -->
+    <string name="quran_title">The Quran</string>
+    <string name="quran_subtitle">114 surahs · 30 juz</string>
+    <string name="quran_search_hint">Surah, number or 2:255</string>
+    <string name="quran_browse_surahs">Surah</string>
+    <string name="quran_browse_juz">Juz</string>
+    <string name="quran_browse_offline">Offline</string>
+    <string name="quran_surah_subtitle">%1$s · %2$s · %3$d ayahs</string>
+    <string name="quran_meccan">Meccan</string>
+    <string name="quran_medinan">Medinan</string>
+    <string name="quran_jump_to">Go to %1$d:%2$d</string>
+    <string name="quran_juz_title">Juz %1$d</string>
+    <string name="quran_juz_starts">Starts at %1$s %2$d:%3$d</string>
+    <string name="quran_no_results">No surah matches “%1$s”</string>
+    <string name="quran_no_results_hint">Try a name, a number, or a verse like 2:255</string>
+    <string name="quran_offline_empty_title">Nothing downloaded yet</string>
+    <string name="quran_offline_empty_text">Open a surah and download it to listen without a connection.</string>
+    <string name="quran_cd_playing">Playing</string>
+    <string name="quran_cd_downloaded">Downloaded</string>
+    <string name="quran_cd_downloading">Downloading, %1$d%</string>
+    <string name="quran_cd_download_failed">Download failed</string>
+    <string name="load_error">Couldn’t load the Quran’s text.</string>
+    <string name="load_retry">Try again</string>
+
+    <!-- You -->
+    <string name="you_title">You</string>
+    <string name="you_progress_open">Your listening</string>
+    <string name="you_settings_listening">Listening</string>
+    <string name="you_settings_reading">Reading</string>
+    <string name="you_settings_appearance">Appearance</string>
+    <string name="you_mode">Recitation</string>
+    <string name="you_mode_arabic">Arabic</string>
+    <string name="you_mode_english">+ English</string>
+    <string name="you_mode_bangla">+ Bangla</string>
+    <string name="you_follow_along">Follow the recitation</string>
+    <string name="you_follow_along_detail">Keep the reciting ayah in view as it plays</string>
+    <string name="you_about">About Qandeel</string>
+    <string name="you_about_detail">Sources, credits and privacy</string>
+
+    <!-- Progress -->
+    <string name="progress_title">Your listening</string>
+    <string name="progress_back">Back</string>
+    <string name="progress_of_ayahs_heard">of %1$s ayahs heard</string>
+    <string name="progress_coverage_line">%1$d% of the Quran · %2$s listened</string>
+    <plurals name="progress_whole_quran_rounds">
+        <item quantity="one">Whole Quran heard once</item>
+        <item quantity="other">Whole Quran heard %1$d×</item>
+    </plurals>
+    <string name="progress_order_recent">Recent</string>
+    <string name="progress_order_most_heard">Most heard</string>
+    <string name="progress_order_by_number">By number</string>
+    <string name="progress_ayahs_heard">%1$d of %2$d ayahs heard</string>
+    <plurals name="progress_full_rounds">
+        <item quantity="one">%1$d full round</item>
+        <item quantity="other">%1$d full rounds</item>
+    </plurals>
+    <plurals name="progress_listens">
+        <item quantity="one">%1$d listen</item>
+        <item quantity="other">%1$d listens</item>
+    </plurals>
+    <string name="progress_into_round">%1$d% into round %2$d</string>
+    <string name="progress_time_hours_minutes">%1$d h %2$d min</string>
+    <string name="progress_time_minutes">%1$d min</string>
+    <string name="progress_time_under_minute">under a minute</string>
+    <string name="progress_reset">Reset progress</string>
+    <string name="progress_reset_title">Reset your listening progress?</string>
+    <string name="progress_reset_text">This forgets every ayah you’ve heard, on this phone and on your watch.</string>
+    <string name="progress_reset_confirm">Reset</string>
+    <string name="progress_reset_cancel">Cancel</string>
+    <string name="progress_empty_title">Nothing heard yet</string>
+    <string name="progress_empty_text">Listen to a surah and your progress shows up here: which ayahs you’ve heard, and how many times.</string>
+    <string name="surah_fallback_name">Surah %1$d</string>
 </resources>

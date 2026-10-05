@@ -1,4 +1,4 @@
-package dev.sadakat.qandeel.presentation.progress
+package dev.sadakat.qandeel.shared.presentation.progress
 
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
@@ -8,7 +8,7 @@ import dev.sadakat.qandeel.core.domain.repository.ListeningCounts
 import dev.sadakat.qandeel.core.testing.FakeListeningHistory
 import dev.sadakat.qandeel.core.testing.FakeQuranText
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
-import dev.sadakat.qandeel.presentation.awaitWhere
+import dev.sadakat.qandeel.core.testing.awaitWhere
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -25,7 +25,10 @@ class ProgressViewModelTest {
     private val history = FakeListeningHistory()
     private val quranText = FakeQuranText()
 
-    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = ProgressViewModel(history, quranText, handle)
+    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) =
+        ProgressViewModel(history, quranText, handle, now = {
+            NOW
+        })
 
     @Test
     fun `sums the whole quran and lists the heard surahs, most recent first`() = runTest {
@@ -109,13 +112,13 @@ class ProgressViewModelTest {
 
     @Test
     fun `the order survives through the saved state handle`() = runTest {
-        val handle = SavedStateHandle(mapOf("order" to ListeningOrder.BY_NUMBER))
-        val viewModel = ProgressViewModel(history, quranText, handle)
+        val handle = SavedStateHandle(mapOf("order" to ListeningOrder.BY_NUMBER.name))
+        val viewModel = ProgressViewModel(history, quranText, handle, now = { NOW })
         viewModel.uiState.test {
             assertEquals(ListeningOrder.BY_NUMBER, awaitWhere { !it.isLoading }.order)
 
             viewModel.setOrder(ListeningOrder.MOST_HEARD)
-            assertEquals(ListeningOrder.MOST_HEARD, handle.get<ListeningOrder>("order"))
+            assertEquals(ListeningOrder.MOST_HEARD.name, handle.get<String>("order"))
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -128,7 +131,7 @@ class ProgressViewModelTest {
             awaitWhere { !it.isEmpty }
 
             viewModel.reset()
-            assertTrue(history.lastResetAt.value > 0)
+            assertEquals(NOW, history.lastResetAt.value)
             assertTrue(awaitWhere { it.isEmpty }.isEmpty)
             cancelAndIgnoreRemainingEvents()
         }
@@ -167,4 +170,8 @@ class ProgressViewModelTest {
     /** The first [ayahs] of [surah] heard [times] times. */
     private fun firstAyahsOf(surah: Int, ayahs: Int, times: Int = 1): Map<Int, Int> =
         (1..ayahs).associate { QuranMeta.globalAyah(surah, it) to times }
+
+    private companion object {
+        const val NOW = 1_700_000_000_000L
+    }
 }

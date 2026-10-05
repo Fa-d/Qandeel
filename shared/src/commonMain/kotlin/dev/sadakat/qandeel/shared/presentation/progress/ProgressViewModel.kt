@@ -1,9 +1,8 @@
-package dev.sadakat.qandeel.presentation.progress
+package dev.sadakat.qandeel.shared.presentation.progress
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.sadakat.qandeel.core.domain.model.ListeningOrder
 import dev.sadakat.qandeel.core.domain.model.ListeningProgress
 import dev.sadakat.qandeel.core.domain.model.Surah
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** One heard surah in the list. */
 data class ProgressRowUi(
@@ -53,14 +51,19 @@ data class ProgressUiState(
     val isEmpty: Boolean get() = rows.isEmpty()
 }
 
-@HiltViewModel
-class ProgressViewModel @Inject constructor(
+class ProgressViewModel(
     private val history: ListeningHistory,
     quranText: QuranText,
     private val savedStateHandle: SavedStateHandle,
+    /** Epoch milliseconds now; a reset is stamped with it, so synced devices know which is newer. */
+    private val now: () -> Long,
 ) : ViewModel() {
 
-    private val order = MutableStateFlow(savedStateHandle.get<ListeningOrder>(ORDER_KEY) ?: ListeningOrder.RECENT)
+    // Saved by name: a multiplatform SavedStateHandle keeps only basic types.
+    private val order = MutableStateFlow(
+        savedStateHandle.get<String>(ORDER_KEY)?.let { name -> ListeningOrder.entries.firstOrNull { it.name == name } }
+            ?: ListeningOrder.RECENT,
+    )
 
     private data class Surahs(val byNumber: Map<Int, Surah> = emptyMap(), val loaded: Boolean = false)
 
@@ -99,13 +102,13 @@ class ProgressViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProgressUiState())
 
     fun setOrder(order: ListeningOrder) {
-        savedStateHandle[ORDER_KEY] = order
+        savedStateHandle[ORDER_KEY] = order.name
         this.order.value = order
     }
 
     /** Forgets everything heard, here and on synced devices (the screen asks first). */
     fun reset() {
-        viewModelScope.launch { history.reset(System.currentTimeMillis()) }
+        viewModelScope.launch { history.reset(now()) }
     }
 
     private companion object {

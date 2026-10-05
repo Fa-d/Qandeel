@@ -1,4 +1,4 @@
-package dev.sadakat.qandeel.presentation.home
+package dev.sadakat.qandeel.shared.presentation.home
 
 import dev.sadakat.qandeel.core.domain.model.Revelation
 import dev.sadakat.qandeel.core.domain.model.Surah

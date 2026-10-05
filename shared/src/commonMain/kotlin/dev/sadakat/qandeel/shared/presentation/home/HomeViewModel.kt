@@ -1,8 +1,7 @@
-package dev.sadakat.qandeel.presentation.home
+package dev.sadakat.qandeel.shared.presentation.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.sadakat.qandeel.core.domain.model.AyahRef
 import dev.sadakat.qandeel.core.domain.model.AyahRefParser
 import dev.sadakat.qandeel.core.domain.model.BanglaVoice
@@ -28,11 +27,15 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-enum class BrowseMode { SURAH, JUZ }
+/** What the Quran tab lists: every surah, the 30 juz, or the surahs on this phone. */
+enum class BrowseMode { SURAH, JUZ, OFFLINE }
 
-data class SurahRowUi(val surah: Surah, val download: SurahDownloadState, val isPlaying: Boolean)
+data class SurahRowUi(val surah: Surah, val download: SurahDownloadState, val isPlaying: Boolean) {
+    /** Downloaded, or downloading, for the current mode. */
+    val isOffline: Boolean
+        get() = download is SurahDownloadState.Downloaded || download is SurahDownloadState.Downloading
+}
 
 data class JuzRowUi(val juz: Int, val start: AyahRef, val surahName: String)
 
@@ -70,8 +73,7 @@ data class HomeUiState(
 }
 
 @OptIn(ExperimentalCoroutinesApi::class) // flatMapLatest: a retry restarts the load, dropping the stale one.
-@HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel(
     quranText: QuranText,
     private val settings: QuranSettings,
     downloads: SurahDownloads,
@@ -132,7 +134,9 @@ class HomeViewModel @Inject constructor(
                         downloadStates.stateOf(it.number, recitation.mode.tracks(recitation.voice)),
                         it.number == playingSurah,
                     )
-                },
+                }
+                // Offline: what is on the phone, or on its way, for the mode that plays.
+                .filter { browsing.browse != BrowseMode.OFFLINE || browsing.query.isNotBlank() || it.isOffline },
             juz = if (byNumber.isEmpty()) emptyList() else juzRows(byNumber),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())

@@ -9,20 +9,28 @@ import androidx.test.uiautomator.Until
 internal const val PACKAGE = "dev.sadakat.qandeel"
 
 private const val TIMEOUT_MS = 10_000L
+private const val SHORT_TIMEOUT_MS = 2_000L
 
-/** Cold start to the first frame of home. */
+/** Cold start to the first frame of home, past onboarding on a fresh install. */
 internal fun MacrobenchmarkScope.startApp() {
     pressHome()
     startActivityAndWait()
+    device.wait(Until.findObject(By.res("onboarding_skip")), SHORT_TIMEOUT_MS)?.click()
     device.wait(Until.hasObject(By.res("home_list")), TIMEOUT_MS)
 }
 
 /**
- * What people do most: scroll the surahs, open one and read, and open the full player when
- * something is queued. The screens' test tags are exposed as resource ids for this.
+ * What people do most: scroll home, then the surahs in the Quran tab, open one and read, and open
+ * the full player when something is queued. The screens' test tags are exposed as resource ids.
  */
 internal fun MacrobenchmarkScope.commonJourney() {
-    val list = device.wait(Until.findObject(By.res("home_list")), TIMEOUT_MS) ?: return
+    device.wait(Until.findObject(By.res("home_list")), TIMEOUT_MS)?.let { home ->
+        home.setGestureMargin(device.displayWidth / GESTURE_MARGIN_DIVISOR)
+        home.fling(Direction.DOWN)
+        device.waitForIdle()
+    }
+    device.wait(Until.findObject(By.res("tab_quran")), TIMEOUT_MS)?.click()
+    val list = device.wait(Until.findObject(By.res("quran_list")), TIMEOUT_MS) ?: return
     // Keep flings off the gesture-navigation edges.
     list.setGestureMargin(device.displayWidth / GESTURE_MARGIN_DIVISOR)
     list.fling(Direction.DOWN)
@@ -37,7 +45,7 @@ internal fun MacrobenchmarkScope.commonJourney() {
         device.waitForIdle()
     }
     device.pressBack()
-    device.wait(Until.hasObject(By.res("home_list")), TIMEOUT_MS)
+    device.wait(Until.hasObject(By.res("quran_list")), TIMEOUT_MS)
 
     device.findObject(By.res("mini_player"))?.let { miniPlayer ->
         miniPlayer.click()

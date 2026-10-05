@@ -1,4 +1,4 @@
-package dev.sadakat.qandeel.presentation
+package dev.sadakat.qandeel.core.testing
 
 import app.cash.turbine.ReceiveTurbine
 

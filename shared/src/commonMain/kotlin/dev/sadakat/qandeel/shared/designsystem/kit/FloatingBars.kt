@@ -22,13 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.sadakat.qandeel.shared.designsystem.Celestial
 
-/** One tab: its [icon] and [label]. */
-class TabItem(val icon: ImageVector, val label: String)
+/** One tab: its [icon] and [label], and a [tag] tests and UI automation find it by. */
+class TabItem(val icon: ImageVector, val label: String, val tag: String? = null)
 
 /**
  * The tab bar, floating over the sky as a capsule of glass. The selected tab glows gold behind
@@ -46,7 +47,12 @@ fun FloatingTabBar(tabs: List<TabItem>, selected: Int, onSelect: (Int) -> Unit, 
             verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEachIndexed { index, tab ->
-                Tab(tab, selected = index == selected, onClick = { onSelect(index) }, modifier = Modifier.weight(1f))
+                Tab(
+                    tab,
+                    selected = index == selected,
+                    onClick = { onSelect(index) },
+                    modifier = Modifier.weight(1f).then(if (tab.tag != null) Modifier.testTag(tab.tag) else Modifier),
+                )
             }
         }
     }
