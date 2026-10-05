@@ -20,6 +20,8 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # A run takes about 20 minutes; a hung one should fail long before GitHub's six-hour limit.
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@v4

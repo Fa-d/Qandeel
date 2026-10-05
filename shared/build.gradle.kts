@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.time.Duration
 
 // The phone UI, written once for Android and iOS (Compose Multiplatform). The JVM target runs the
 // screenshot tests: Compose Desktop draws with Skia, as iOS does, so the goldens show what both see.
@@ -75,4 +76,10 @@ compose.resources {
 
 roborazzi {
     outputDir.set(file("src/jvmTest/screenshots"))
+}
+
+// A desktop UI test that never goes idle blocks on the UI thread, where runTest's own timeout can't
+// reach it: fail the task instead of holding CI until the runner's limit. Normally it takes minutes.
+tasks.withType<Test>().configureEach {
+    timeout.set(Duration.ofMinutes(30))
 }
