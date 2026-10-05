@@ -34,4 +34,6 @@ data class ReadingPrefs(
     /** Wallpaper colors (Android 12+) instead of the brand's. */
     val dynamicColor: Boolean = false,
     val uiStyle: UiStyle = UiStyle.MUSHAF,
+    /** Still the sky and the lamp: no drifting, turning or twinkling. */
+    val reduceMotion: Boolean = false,
 )

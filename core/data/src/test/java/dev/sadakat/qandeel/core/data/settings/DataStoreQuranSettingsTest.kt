@@ -16,7 +16,9 @@ import dev.sadakat.qandeel.core.domain.repository.LastPosition
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.FixMethodOrder
 import org.junit.Test
@@ -36,6 +38,11 @@ class DataStoreQuranSettingsTest {
     @Before
     fun setUp() {
         settings = DataStoreQuranSettings(ApplicationProvider.getApplicationContext<Context>())
+    }
+
+    @Test
+    fun `a new install, with no settings yet, has not been onboarded`() = runTest {
+        assertFalse(settings.onboardingDone.first())
     }
 
     @Test
@@ -103,10 +110,27 @@ class DataStoreQuranSettingsTest {
             themeMode = ThemeMode.SEPIA,
             dynamicColor = true,
             uiStyle = UiStyle.GLASS,
+            reduceMotion = true,
         )
         settings.updateReadingPrefs { changed }
         settings.updateReadingPrefs { it.copy(showTranslation = true) }
 
         assertEquals(changed.copy(showTranslation = true), settings.readingPrefs.first())
+    }
+
+    // Runs after the tests above have written settings (names in ascending order), like an update
+    // from a version without onboarding.
+    @Test
+    fun `then someone who already has settings counts as onboarded`() = runTest {
+        assertTrue(settings.onboardingDone.first())
+    }
+
+    @Test
+    fun `then setOnboardingDone round trips, over the settings' fallback`() = runTest {
+        settings.setOnboardingDone(false)
+        assertFalse(settings.onboardingDone.first())
+
+        settings.setOnboardingDone(true)
+        assertTrue(settings.onboardingDone.first())
     }
 }

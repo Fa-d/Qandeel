@@ -73,6 +73,7 @@ class DataStoreQuranSettings(private val context: Context) : QuranSettings {
             preferences[THEME_MODE] = prefs.themeMode.name
             preferences[DYNAMIC_COLOR] = prefs.dynamicColor
             preferences[UI_STYLE] = prefs.uiStyle.name
+            preferences[REDUCE_MOTION] = prefs.reduceMotion
         }
     }
 
@@ -85,6 +86,17 @@ class DataStoreQuranSettings(private val context: Context) : QuranSettings {
         context.quranDataStore.edit { it[PLAYBACK_SPEED] = speed.name }
     }
 
+    // Never set: a new install has no settings at all, while someone updating from a version
+    // without onboarding has some, and keeps the app as they had it.
+    override val onboardingDone: Flow<Boolean> =
+        context.quranDataStore.data.map { preferences ->
+            preferences[ONBOARDING_DONE] ?: preferences.asMap().isNotEmpty()
+        }
+
+    override suspend fun setOnboardingDone(done: Boolean) {
+        context.quranDataStore.edit { it[ONBOARDING_DONE] = done }
+    }
+
     private fun Preferences.readingPrefs(): ReadingPrefs {
         val defaults = ReadingPrefs()
         return ReadingPrefs(
@@ -95,6 +107,7 @@ class DataStoreQuranSettings(private val context: Context) : QuranSettings {
             themeMode = this[THEME_MODE]?.let { enumOrNull<ThemeMode>(it) } ?: defaults.themeMode,
             dynamicColor = this[DYNAMIC_COLOR] ?: defaults.dynamicColor,
             uiStyle = this[UI_STYLE]?.let { enumOrNull<UiStyle>(it) } ?: defaults.uiStyle,
+            reduceMotion = this[REDUCE_MOTION] ?: defaults.reduceMotion,
         )
     }
 
@@ -112,6 +125,8 @@ class DataStoreQuranSettings(private val context: Context) : QuranSettings {
         val UI_STYLE = stringPreferencesKey("ui_style")
         val PLAYBACK_SPEED = stringPreferencesKey("playback_speed")
         val BANGLA_VOICE = stringPreferencesKey("bangla_voice")
+        val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
+        val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
         val DEFAULT_MODE = RecitationMode.ARABIC_BANGLA
     }
 }

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Onboarding: welcome. The ayah is An-Nur 24:35's opening, as bundled (Uthmani, Saheeh International). -->
+    <string name="onboarding_welcome_ayah">ٱللَّهُ نُورُ ٱلسَّمَٰوَٰتِ وَٱلْأَرْضِ ۚ مَثَلُ نُورِهِۦ كَمِشْكَوٰةٍۢ فِيهَا مِصْبَاحٌ</string>
+    <string name="onboarding_welcome_meaning">“Allah is the Light of the heavens and the earth. The example of His light is like a niche within which is a lamp…”</string>
+    <string name="onboarding_welcome_reference">An-Nur 24:35</string>
+    <string name="onboarding_welcome_title">Qandeel</string>
+    <string name="onboarding_welcome_subtitle">Listen to the Quran ayah by ayah, in Arabic and in its meaning.</string>
+    <string name="onboarding_begin">Begin</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Continue</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_finish">Start listening</string>
+    <string name="onboarding_step">Step %1$d of %2$d</string>
+
+    <!-- Listening -->
+    <string name="onboarding_listening_title">How would you like to listen?</string>
+    <string name="onboarding_listening_supporting">Each ayah is recited in Arabic, then, if you like, read in its meaning.</string>
+    <string name="onboarding_mode_arabic">Arabic only</string>
+    <string name="onboarding_mode_arabic_detail">Mishary Alafasy</string>
+    <string name="onboarding_mode_english">Arabic, then English</string>
+    <string name="onboarding_mode_english_detail">Saheeh International, read by Ibrahim Walk</string>
+    <string name="onboarding_mode_bangla">Arabic, then Bangla</string>
+    <string name="onboarding_mode_bangla_detail">Choose whose voice reads the Bangla</string>
+    <string name="onboarding_voice_title">Bangla voice</string>
+    <string name="onboarding_voice_if">Islamic Foundation</string>
+    <string name="onboarding_voice_if_detail">with Mishary Alafasy</string>
+    <string name="onboarding_voice_toha">Sayed Ismat Toha</string>
+    <string name="onboarding_voice_toha_detail">with Abdul Basit (mujawwad)</string>
+    <string name="onboarding_voice_baezeed">Shareef Baezeed Mahmood</string>
+    <string name="onboarding_voice_baezeed_detail">with Abdur-Rahman As-Sudais</string>
+    <string name="onboarding_voice_play">Play a sample of %1$s</string>
+    <string name="onboarding_voice_stop">Stop the sample</string>
+
+    <!-- Reading -->
+    <string name="onboarding_reading_title">Make the page yours</string>
+    <string name="onboarding_reading_supporting">You can change these any time in You › Settings.</string>
+    <string name="onboarding_reading_sample_ayah">ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ</string>
+    <string name="onboarding_reading_sample_meaning">[All] praise is [due] to Allah, Lord of the worlds –</string>
+    <!-- Al-Fatiha 1:2's words and their meanings, as bundled from quran.com's word by word. -->
+    <string name="onboarding_sample_word_1">ٱلْحَمْدُ</string>
+    <string name="onboarding_sample_word_2">لِلَّهِ</string>
+    <string name="onboarding_sample_word_3">رَبِّ</string>
+    <string name="onboarding_sample_word_4">ٱلْعَٰلَمِينَ</string>
+    <string name="onboarding_sample_en_1">All praises and thanks</string>
+    <string name="onboarding_sample_en_2">(be) to Allah</string>
+    <string name="onboarding_sample_en_3">the Lord</string>
+    <string name="onboarding_sample_en_4">of the universe</string>
+    <string name="onboarding_sample_bn_1">সকল প্রশংসা</string>
+    <string name="onboarding_sample_bn_2">আল্লাহ্‌রই জন্য</string>
+    <string name="onboarding_sample_bn_3">(যিনি) রব</string>
+    <string name="onboarding_sample_bn_4">সারা জগতের</string>
+    <string name="onboarding_arabic_size">Arabic size</string>
+    <string name="onboarding_arabic_size_step">Arabic size %1$d of %2$d</string>
+    <string name="onboarding_show_translation">Show the meaning under each ayah</string>
+    <string name="onboarding_word_by_word">Word by word</string>
+    <string name="onboarding_word_by_word_detail">Each word’s meaning under it, lit as it is recited</string>
+    <string name="onboarding_wbw_off">Off</string>
+    <string name="onboarding_wbw_english">English</string>
+    <string name="onboarding_wbw_bangla">Bangla</string>
+
+    <!-- Look and motion -->
+    <string name="onboarding_look_title">Night or dawn?</string>
+    <string name="onboarding_look_supporting">The sky follows your phone, or stays as you choose.</string>
+    <string name="onboarding_theme_auto">Auto</string>
+    <string name="onboarding_theme_dawn">Dawn</string>
+    <string name="onboarding_theme_night">Night</string>
+    <string name="onboarding_reduce_motion">Reduce motion</string>
+    <string name="onboarding_reduce_motion_detail">A still sky and lamp: no drifting, turning or twinkling</string>
+
+    <!-- Offline and watch -->
+    <string name="onboarding_offline_title">Listen anywhere</string>
+    <string name="onboarding_offline_supporting">Download what you listen to most, so it plays without a connection.</string>
+    <string name="onboarding_starter">Al-Fatiha and the last ten surahs</string>
+    <string name="onboarding_starter_detail">The surahs recited most, in every prayer · under 20 MB</string>
+    <string name="onboarding_watch">Also on your watch</string>
+    <string name="onboarding_watch_detail">Send the same surahs to Qandeel on your Wear OS watch</string>
+    <string name="onboarding_offline_later">Any surah can be downloaded later from the Quran tab.</string>
+</resources>

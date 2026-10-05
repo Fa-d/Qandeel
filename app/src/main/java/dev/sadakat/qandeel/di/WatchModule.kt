@@ -4,7 +4,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.sadakat.qandeel.watch.WatchConnection
+import dev.sadakat.qandeel.core.domain.repository.WatchConnection
 import dev.sadakat.qandeel.watch.WatchLink
 import javax.inject.Singleton
 
