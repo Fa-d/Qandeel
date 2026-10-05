@@ -49,13 +49,14 @@ private val playerLabels = PlayerBarLabels(play = "Play", pause = "Pause", next 
 internal fun HomeConcept() {
     val clock = Celestial.clock
     Box(Modifier.fillMaxSize()) {
-        CelestialSky(Modifier.fillMaxSize(), glowCenter = Offset(0.5f, 0.2f))
+        CelestialSky(Modifier.fillMaxSize(), glowCenter = Offset(0.5f, 0.22f))
         QandeelLamp(
             motion = { LampMotion(time = clock.seconds(), energy = 0.4f) },
             colors = Celestial.colors.lamp,
             modifier = Modifier
+                .padding(top = 60.dp)
                 .fillMaxWidth()
-                .height(300.dp),
+                .height(290.dp),
         )
         Column(
             Modifier

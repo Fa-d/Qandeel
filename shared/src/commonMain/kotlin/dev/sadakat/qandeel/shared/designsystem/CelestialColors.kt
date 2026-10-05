@@ -28,6 +28,8 @@ data class CelestialColors(
     val inkMuted: Color,
     val inkFaint: Color,
     val accent: Color,
+    /** The lit end of gold gradients (the play button, progress). */
+    val accentBright: Color,
     val accentSoft: Color,
     val onAccent: Color,
     val glass: Color,
@@ -47,8 +49,6 @@ object CelestialPalette {
     private val Paper = Color(0xFFF4ECDD)
     private val Ink = Color(0xFF1D1A16)
 
-    private val flame = Triple(Color(0xFFFFF8E7), Color(0xFFFFC864), Color(0xFFFF8A3D))
-
     val night = CelestialColors(
         isNight = true,
         sky = SkyColors(
@@ -59,18 +59,18 @@ object CelestialPalette {
             star = Color(0xFFFFF4DC),
         ),
         lamp = LampColors(
-            glass = Gold,
-            edge = GoldBright,
-            chain = Color(0xCCC9A45A),
-            halo = Color(0xFFF0B85A),
-            flameCore = flame.first,
-            flameBody = flame.second,
-            flameTip = flame.third,
+            string = GoldBright,
+            stringFar = Color(0xFFB98E4A),
+            core = Color(0xFFFFF8E7),
+            glow = Color(0xFFF0B85A),
+            spark = Color(0xFFFFE2A8),
+            additive = true,
         ),
         ink = Paper,
         inkMuted = Color(0xFFBDB6A8),
         inkFaint = Color(0xFF8A8577),
         accent = Gold,
+        accentBright = GoldBright,
         accentSoft = Color(0x33E3BC6A),
         onAccent = Color(0xFF1A1405),
         glass = Color(0x14FFFFFF),
@@ -91,18 +91,18 @@ object CelestialPalette {
             star = Color(0x99B8862F),
         ),
         lamp = LampColors(
-            glass = Color(0xFFD9A441),
-            edge = GoldDeep,
-            chain = Color(0xCC8C5E12),
-            halo = Color(0xCCF4B860),
-            flameCore = flame.first,
-            flameBody = flame.second,
-            flameTip = flame.third,
+            string = Color(0xFFC48A2C),
+            stringFar = Color(0xFFDDB97E),
+            core = Color(0xFFFFD27A),
+            glow = Color(0xFFF2B65C),
+            spark = Color(0xFFE39A2E),
+            additive = false,
         ),
         ink = Ink,
         inkMuted = Color(0xFF5B5347),
         inkFaint = Color(0xFF8A8172),
         accent = GoldDeep,
+        accentBright = Color(0xFFB8862F),
         accentSoft = Color(0x268C5E12),
         onAccent = Color(0xFFFFF8EC),
         glass = Color(0x8CFFFFFF),

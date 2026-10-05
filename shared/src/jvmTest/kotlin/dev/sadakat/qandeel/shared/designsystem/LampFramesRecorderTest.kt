@@ -34,9 +34,9 @@ class LampFramesRecorderTest {
         assumeTrue(System.getenv("LAMP_FRAMES") != null)
         val out = File("build/lamp-frames").apply { mkdirs() }
         val seconds = mutableFloatStateOf(0f)
-        runDesktopComposeUiTest(width = 412, height = 420) {
+        runDesktopComposeUiTest(width = 824, height = 840) {
             setContent {
-                CompositionLocalProvider(LocalDensity provides Density(1f)) {
+                CompositionLocalProvider(LocalDensity provides Density(2f)) {
                     CelestialTheme(night = true, clock = { seconds.floatValue }) {
                         Box(Modifier.fillMaxSize()) {
                             CelestialSky(Modifier.fillMaxSize(), glowCenter = Offset(0.5f, 0.45f))

@@ -5,267 +5,203 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.max
+import androidx.compose.ui.graphics.drawscope.scale
 import kotlin.math.min
 import kotlin.math.sin
 
-/** The lamp's colours: its glass and metal, the light it gives, and its flame. */
+/**
+ * The lantern's light: [string] for the strings facing the viewer, [stringFar] for those behind,
+ * [core] the heart of the light, [glow] the warmth around it and the pool it casts below, [spark]
+ * the beads travelling the strings. [additive] adds light to the sky (night); otherwise it is
+ * painted over it (dawn, where adding light to a pale sky would only wash it out).
+ */
 @Immutable
 data class LampColors(
-    val glass: Color,
-    val edge: Color,
-    val chain: Color,
-    val halo: Color,
-    val flameCore: Color,
-    val flameBody: Color,
-    val flameTip: Color,
+    val string: Color,
+    val stringFar: Color,
+    val core: Color,
+    val glow: Color,
+    val spark: Color,
+    val additive: Boolean,
 )
 
 /**
- * Where the lamp is in its motion: [time] in seconds drives the turn, the sway and the flicker;
- * [energy] (0..1) is how brightly it burns, which a recitation raises on every word; [tilt] (-1..1)
- * leans it towards or away from the viewer, as the page scrolls.
+ * Where the lantern is in its motion: [time] in seconds drives every movement; [energy] (0..1) is
+ * how brightly it burns, which a recitation raises on every word; [tilt] (-1..1) leans it towards
+ * or away from the viewer, as the page scrolls.
  */
 @Immutable
 data class LampMotion(val time: Float = 0f, val energy: Float = 0f, val tilt: Float = 0f)
 
 /**
- * Qandeel's lamp: the rub el hizb as a glass prism, hung from a chain, turning slowly with a flame
- * at its heart. Drawn in 3D on a Canvas, every frame from [motion], which it reads only while
- * drawing: the lamp redraws as it moves but never recomposes.
+ * Qandeel's lamp: a lantern woven from strings of light around a glowing heart, floating free.
+ * Its star-shaped rings breathe between star and circle, twist, and vibrate like plucked strings
+ * ([StringLantern]); beads of light run along them, faster as the recitation goes on.
+ *
+ * Drawn in 3D on a Canvas every frame from [motion], read only while drawing: the lantern redraws
+ * as it moves but never recomposes.
  */
 @Composable
 fun QandeelLamp(motion: () -> LampMotion, colors: LampColors, modifier: Modifier = Modifier) {
     Spacer(modifier.drawBehind { drawLamp(motion(), colors) })
 }
 
-private val glassFaces = LampGeometry.prism(depth = 0.24f)
-private const val CAMERA_DISTANCE = 4.2f
-
-/** Light falls from the upper left, in front: the faces turned to it shine. */
-private val keyLight = Vec3(-0.45f, -0.6f, -1f).normalized()
+private const val CAMERA_DISTANCE = 5f
+private const val BEADS = 12
 
 internal fun DrawScope.drawLamp(motion: LampMotion, colors: LampColors) {
     val t = motion.time
-    val radius = min(size.width * 0.34f, size.height * 0.3f)
-    val center = Offset(size.width / 2f, size.height * 0.56f)
-    val anchor = Offset(size.width / 2f, 0f)
-    val burn = 0.75f + 0.25f * motion.energy
-
-    drawHalo(center, radius, colors.halo, burn)
-    // The whole lamp swings a little on its chain, about the point it hangs from.
-    rotate(degrees = sin(t * 0.7f) * 2.2f, pivot = anchor) {
-        // It turns back and forth rather than round, so the star always faces the viewer.
-        val rotation = LampRotation(
-            yaw = sin(t * 0.4f) * 0.55f + sin(t * 0.17f) * 0.2f,
-            pitch = 0.16f + motion.tilt * 0.22f,
-        )
-        val top = project(LampGeometry.outline.first(), rotation, center, radius)
-        val bottom = project(LampGeometry.outline[LampGeometry.outline.size / 2], rotation, center, radius)
-        drawChain(anchor, top.y, radius, colors.chain)
-        drawRays(center, radius, t, colors.halo, burn)
-        val projected = glassFaces.map { face -> ProjectedFace(face, rotation, center, radius) }
-        // Painter's order, far to near; the flame sits between the faces turned away and the rest.
-        val (away, toward) = projected.sortedByDescending { it.depth }.partition { it.normal.z > 0f }
-        away.forEach { drawFace(it, colors) }
-        drawFlame(center, radius, t, motion.energy, colors)
-        toward.forEach { drawFace(it, colors) }
-        drawFinials(top, bottom, radius, colors)
-    }
-}
-
-/** A face turned and projected: its screen outline, its depth and its turned normal. */
-private class ProjectedFace(face: Face, rotation: LampRotation, center: Offset, radius: Float) {
-    val normal = rotation.apply(face.normal)
-    val depth: Float
-    val path = Path()
-
-    init {
-        var depthSum = 0f
-        face.corners.forEachIndexed { i, corner ->
-            val p = rotation.apply(corner)
-            depthSum += p.z
-            val scale = perspective(p.z, CAMERA_DISTANCE) * radius
-            val x = center.x + p.x * scale
-            val y = center.y + p.y * scale
-            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-        }
-        path.close()
-        depth = depthSum / face.corners.size
-    }
-}
-
-private fun DrawScope.drawFace(face: ProjectedFace, colors: LampColors) {
-    val lit = max(0f, face.normal.dot(keyLight))
-    // Glass seen edge-on looks denser (a rim); seen face-on it is clearer.
-    val rim = 1f - abs(face.normal.z)
-    val alpha = (0.1f + 0.3f * lit + 0.22f * rim).coerceAtMost(0.75f)
-    drawPath(face.path, colors.glass.copy(alpha = colors.glass.alpha * alpha))
-    drawPath(
-        face.path,
-        colors.edge.copy(alpha = colors.edge.alpha * (0.35f + 0.55f * lit)),
-        style = Stroke(width = 1.2f * density, cap = StrokeCap.Round),
+    val energy = motion.energy.coerceIn(0f, 1f)
+    val unit = min(size.width * 0.27f, size.height * 0.28f)
+    // It floats: a slow bob, and a slower lean, as if on warm air.
+    val center = Offset(size.width / 2f, size.height * 0.46f + sin(t * 0.8f) * unit * 0.06f)
+    val rotation = LampRotation(
+        yaw = t * 0.22f,
+        pitch = 0.5f + sin(t * 0.27f) * 0.07f + motion.tilt * 0.2f,
     )
+    val blend = if (colors.additive) BlendMode.Plus else BlendMode.SrcOver
+    val project = { v: Vec3 -> projected(v, rotation, center, unit) }
+
+    drawPool(center, unit, colors.glow, energy)
+    // The heart breathes, and swells with each recited word.
+    drawHeart(center, unit, breath = 1f + 0.06f * sin(t * 1.9f) + 0.18f * energy, colors, blend)
+    StringLantern.strings(t, energy).forEach { string -> drawString(string, project, unit, colors, blend) }
+    drawBeads(t, energy, project, colors, blend)
 }
 
-private fun DrawScope.drawHalo(center: Offset, radius: Float, halo: Color, burn: Float) {
-    val reach = radius * (1.9f + 0.3f * burn)
+/** A point of model space on screen, with its depth (positive is behind the lantern's centre). */
+private class Projected(val offset: Offset, val depth: Float)
+
+private fun projected(v: Vec3, rotation: LampRotation, center: Offset, unit: Float): Projected {
+    val p = rotation.apply(v)
+    val scale = perspective(p.z, CAMERA_DISTANCE) * unit
+    return Projected(Offset(center.x + p.x * scale, center.y + p.y * scale), p.z)
+}
+
+/**
+ * One string, in two passes: the stretch behind the lantern's middle, faint and thin, then the
+ * stretch in front, bright. Each is drawn as a wide soft glow, a narrower halo, and a fine core,
+ * which is what makes a line read as light rather than as wire.
+ */
+private fun DrawScope.drawString(
+    string: LightString,
+    project: (Vec3) -> Projected,
+    unit: Float,
+    colors: LampColors,
+    blend: BlendMode,
+) {
+    val near = Path()
+    val far = Path()
+    var previous: Projected? = null
+    string.points.forEach { point ->
+        val p = project(point)
+        val last = previous
+        if (last != null) {
+            val path = if ((last.depth + p.depth) / 2f < 0f) near else far
+            path.moveTo(last.offset.x, last.offset.y)
+            path.lineTo(p.offset.x, p.offset.y)
+        }
+        previous = p
+    }
+    val width = unit / 100f
+    glowStroke(far, colors.stringFar, string.brightness * 0.45f, width * 0.7f, blend)
+    glowStroke(near, colors.string, string.brightness, width, blend)
+}
+
+private fun DrawScope.glowStroke(path: Path, color: Color, brightness: Float, width: Float, blend: BlendMode) {
+    listOf(7f to 0.06f, 3f to 0.16f, 1.1f to 0.85f).forEach { (thickness, alpha) ->
+        drawPath(
+            path,
+            color.copy(alpha = color.alpha * alpha * brightness),
+            style = Stroke(width = width * thickness, cap = StrokeCap.Round, join = StrokeJoin.Round),
+            blendMode = blend,
+        )
+    }
+}
+
+/** The heart of the light: a soft orb, [breath] times its resting size, in a wide warm halo. */
+private fun DrawScope.drawHeart(center: Offset, unit: Float, breath: Float, colors: LampColors, blend: BlendMode) {
+    val halo = unit * 2.3f * breath
     drawCircle(
         Brush.radialGradient(
-            0f to halo.copy(alpha = halo.alpha * 0.45f * burn),
-            0.3f to halo.copy(alpha = halo.alpha * 0.12f * burn),
+            0f to colors.glow.copy(alpha = colors.glow.alpha * 0.32f),
+            0.4f to colors.glow.copy(alpha = colors.glow.alpha * 0.1f),
             1f to Color.Transparent,
             center = center,
-            radius = reach,
+            radius = halo,
         ),
-        radius = reach,
+        radius = halo,
         center = center,
+        blendMode = blend,
     )
-}
-
-/** Faint shafts of light from the heart through the star's eight points, turning with it. */
-private fun DrawScope.drawRays(center: Offset, radius: Float, t: Float, halo: Color, burn: Float) {
-    val length = radius * 2.6f
-    val spin = t * 0.32f
-    repeat(8) { k ->
-        val angle = spin + k * PI.toFloat() / 4f
-        val shimmer = 0.6f + 0.4f * sin(t * 1.3f + k * 1.7f)
-        rotate(degrees = angle * 180f / PI.toFloat(), pivot = center) {
-            val ray = Path().apply {
-                moveTo(center.x, center.y - radius * 0.05f)
-                lineTo(center.x + length, center.y - radius * 0.11f)
-                lineTo(center.x + length, center.y + radius * 0.11f)
-                lineTo(center.x, center.y + radius * 0.05f)
-                close()
-            }
-            drawPath(
-                ray,
-                Brush.horizontalGradient(
-                    0f to halo.copy(alpha = halo.alpha * 0.16f * burn * shimmer),
-                    1f to Color.Transparent,
-                    startX = center.x,
-                    endX = center.x + length,
-                ),
-            )
-        }
-    }
-}
-
-private fun DrawScope.drawChain(anchor: Offset, bottom: Float, radius: Float, chain: Color) {
-    val link = radius * 0.12f
-    var y = anchor.y
-    var i = 0
-    while (y < bottom) {
-        val upright = i % 2 == 0
-        val size = if (upright) Size(link * 0.55f, link) else Size(link * 0.22f, link)
-        drawRoundRect(
-            color = chain,
-            topLeft = Offset(anchor.x - size.width / 2f, y),
-            size = size,
-            cornerRadius = CornerRadius(size.width / 2f),
-            style = Stroke(width = 1.4f * density),
-        )
-        y += link * 0.8f
-        i++
-    }
-}
-
-/** A model-space point on screen. */
-private fun project(point: Vec3, rotation: LampRotation, center: Offset, radius: Float): Offset {
-    val p = rotation.apply(point)
-    val scale = perspective(p.z, CAMERA_DISTANCE) * radius
-    return Offset(center.x + p.x * scale, center.y + p.y * scale)
-}
-
-/** The cap the chain holds at the [top] point, and the drop under the [bottom] one. */
-private fun DrawScope.drawFinials(top: Offset, bottom: Offset, radius: Float, colors: LampColors) {
-    drawCircle(colors.edge, radius = radius * 0.06f, center = top)
-    val tip = bottom
-    val drop = Path().apply {
-        moveTo(tip.x, tip.y)
-        cubicTo(
-            tip.x + radius * 0.07f,
-            tip.y + radius * 0.08f,
-            tip.x + radius * 0.03f,
-            tip.y + radius * 0.2f,
-            tip.x,
-            tip.y + radius * 0.24f,
-        )
-        cubicTo(
-            tip.x - radius * 0.03f,
-            tip.y + radius * 0.2f,
-            tip.x - radius * 0.07f,
-            tip.y + radius * 0.08f,
-            tip.x,
-            tip.y,
-        )
-        close()
-    }
-    drawPath(drop, colors.edge)
-}
-
-/** A teardrop flame that flickers, leans with the swing, and stands taller as it burns brighter. */
-private fun DrawScope.drawFlame(center: Offset, radius: Float, t: Float, energy: Float, colors: LampColors) {
-    val flicker = 1f + 0.07f * sin(t * 9.1f) + 0.05f * sin(t * 13.7f + 1.3f) + 0.18f * energy
-    val height = radius * 0.62f * flicker
-    val width = radius * 0.2f * (1f + 0.08f * energy)
-    val lean = sin(t * 2.3f) * width * 0.35f
-    val base = Offset(center.x, center.y + height * 0.32f)
-
+    val orb = unit * 0.42f * breath
     drawCircle(
         Brush.radialGradient(
-            0f to colors.flameBody.copy(alpha = 0.55f + 0.3f * energy),
+            0f to colors.core,
+            0.25f to colors.core.copy(alpha = 0.85f),
+            0.6f to colors.glow.copy(alpha = colors.glow.alpha * 0.45f),
             1f to Color.Transparent,
             center = center,
-            radius = radius * 0.7f,
+            radius = orb,
         ),
-        radius = radius * 0.7f,
+        radius = orb,
         center = center,
+        blendMode = blend,
     )
-    drawPath(teardrop(base, width, height, lean), flameBrush(base, height, colors))
-    drawPath(teardrop(base, width * 0.45f, height * 0.5f, lean * 0.5f), colors.flameCore)
 }
 
-private fun teardrop(base: Offset, width: Float, height: Float, lean: Float) = Path().apply {
-    val tip = Offset(base.x + lean, base.y - height)
-    moveTo(tip.x, tip.y)
-    cubicTo(
-        base.x + width * 0.25f,
-        base.y - height * 0.55f,
-        base.x + width,
-        base.y - height * 0.2f,
-        base.x + width * 0.8f,
-        base.y - width * 0.1f,
-    )
-    cubicTo(
-        base.x + width * 0.55f,
-        base.y + width * 0.75f,
-        base.x - width * 0.55f,
-        base.y + width * 0.75f,
-        base.x - width * 0.8f,
-        base.y - width * 0.1f,
-    )
-    cubicTo(base.x - width, base.y - height * 0.2f, base.x - width * 0.25f, base.y - height * 0.55f, tip.x, tip.y)
-    close()
+/** The pool of light it casts below, which is what makes it look as if it floats. */
+private fun DrawScope.drawPool(center: Offset, unit: Float, glow: Color, energy: Float) {
+    val pool = Offset(center.x, center.y + unit * 1.6f)
+    val radius = unit * 1.5f
+    scale(scaleX = 1f, scaleY = 0.16f, pivot = pool) {
+        drawCircle(
+            Brush.radialGradient(
+                0f to glow.copy(alpha = glow.alpha * (0.35f + 0.2f * energy)),
+                1f to Color.Transparent,
+                center = pool,
+                radius = radius,
+            ),
+            radius = radius,
+            center = pool,
+        )
+    }
 }
 
-private fun flameBrush(base: Offset, height: Float, colors: LampColors) = Brush.verticalGradient(
-    0f to colors.flameTip.copy(alpha = 0f),
-    0.35f to colors.flameTip,
-    0.7f to colors.flameBody,
-    1f to colors.flameCore,
-    startY = base.y - height,
-    endY = base.y + height * 0.12f,
-)
+/** Beads of light running along the rings, the strings' energy made visible. */
+private fun DrawScope.drawBeads(
+    t: Float,
+    energy: Float,
+    project: (Vec3) -> Projected,
+    colors: LampColors,
+    blend: BlendMode,
+) {
+    val size = this.size.minDimension / 140f
+    repeat(BEADS) { i ->
+        val p = project(StringLantern.bead(i, BEADS, t, energy))
+        val behind = p.depth > 0f
+        val strength = if (behind) 0.3f else 1f
+        val glowRadius = size * 4f
+        drawCircle(
+            Brush.radialGradient(
+                0f to colors.spark.copy(alpha = 0.7f * strength),
+                1f to Color.Transparent,
+                center = p.offset,
+                radius = glowRadius,
+            ),
+            radius = glowRadius,
+            center = p.offset,
+            blendMode = blend,
+        )
+        drawCircle(colors.core.copy(alpha = strength), radius = size * 0.8f, center = p.offset, blendMode = blend)
+    }
+}

@@ -70,7 +70,7 @@ fun PlayButton(playing: Boolean, label: String, onClick: () -> Unit, modifier: M
         modifier
             .size(size)
             .clip(CircleShape)
-            .background(Brush.verticalGradient(listOf(colors.lamp.edge, colors.accent)))
+            .background(Brush.verticalGradient(listOf(colors.accentBright, colors.accent)))
             .clickable(role = Role.Button, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
@@ -94,7 +94,7 @@ fun ProgressLine(fraction: Float, modifier: Modifier = Modifier) {
             val radius = CornerRadius(size.height / 2f)
             drawRoundRect(colors.inkFaint.copy(alpha = 0.25f), cornerRadius = radius)
             drawRoundRect(
-                Brush.horizontalGradient(listOf(colors.accent, colors.lamp.edge)),
+                Brush.horizontalGradient(listOf(colors.accent, colors.accentBright)),
                 size = size.copy(width = size.width * fraction.coerceIn(0f, 1f)),
                 cornerRadius = radius,
             )
