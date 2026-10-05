@@ -25,7 +25,10 @@ class ProgressViewModelTest {
     private val history = FakeListeningHistory()
     private val quranText = FakeQuranText()
 
-    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) = ProgressViewModel(history, quranText, handle, now = { NOW })
+    private fun viewModel(handle: SavedStateHandle = SavedStateHandle()) =
+        ProgressViewModel(history, quranText, handle, now = {
+            NOW
+        })
 
     @Test
     fun `sums the whole quran and lists the heard surahs, most recent first`() = runTest {

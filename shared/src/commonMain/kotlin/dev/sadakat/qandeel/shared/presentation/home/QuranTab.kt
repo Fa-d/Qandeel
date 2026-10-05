@@ -39,9 +39,9 @@ import dev.sadakat.qandeel.shared.resources.load_retry
 import dev.sadakat.qandeel.shared.resources.quran_browse_juz
 import dev.sadakat.qandeel.shared.resources.quran_browse_offline
 import dev.sadakat.qandeel.shared.resources.quran_browse_surahs
+import dev.sadakat.qandeel.shared.resources.quran_jump_to
 import dev.sadakat.qandeel.shared.resources.quran_juz_starts
 import dev.sadakat.qandeel.shared.resources.quran_juz_title
-import dev.sadakat.qandeel.shared.resources.quran_jump_to
 import dev.sadakat.qandeel.shared.resources.quran_no_results
 import dev.sadakat.qandeel.shared.resources.quran_no_results_hint
 import dev.sadakat.qandeel.shared.resources.quran_offline_empty_text
@@ -50,14 +50,6 @@ import dev.sadakat.qandeel.shared.resources.quran_search_hint
 import dev.sadakat.qandeel.shared.resources.quran_subtitle
 import dev.sadakat.qandeel.shared.resources.quran_title
 import org.jetbrains.compose.resources.stringResource
-
-/** What the Quran tab's controls do. */
-class QuranTabActions(
-    val onQueryChange: (String) -> Unit,
-    val onBrowseChange: (BrowseMode) -> Unit,
-    val onOpenReader: (surah: Int, ayah: Int) -> Unit,
-    val onRetry: () -> Unit,
-)
 
 /**
  * The Quran: one search for names, numbers and verse references ("2:255" offers to go straight
@@ -74,7 +66,9 @@ fun QuranTab(
     Box(modifier.fillMaxSize()) {
         CelestialSky(
             Modifier.fillMaxSize(),
-            scroll = { (listState.firstVisibleItemIndex * ROW_ESTIMATE_PX + listState.firstVisibleItemScrollOffset).toFloat() },
+            scroll = {
+                (listState.firstVisibleItemIndex * ROW_ESTIMATE_PX + listState.firstVisibleItemScrollOffset).toFloat()
+            },
             glowCenter = Offset(0.85f, 0.02f),
         )
         LazyColumn(
@@ -82,11 +76,17 @@ fun QuranTab(
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("quran_list"),
-            contentPadding = PaddingValues(top = contentPadding.calculateTopPadding(), bottom = contentPadding.calculateBottomPadding()),
+            contentPadding = PaddingValues(
+                top = contentPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding(),
+            ),
         ) {
             item(key = "header") {
                 Column(Modifier.padding(horizontal = Celestial.spacing.gutter).padding(top = Celestial.spacing.xl)) {
-                    ScreenHeader(stringResource(Res.string.quran_title), subtitle = stringResource(Res.string.quran_subtitle))
+                    ScreenHeader(
+                        stringResource(Res.string.quran_title),
+                        subtitle = stringResource(Res.string.quran_subtitle),
+                    )
                     Spacer(Modifier.height(Celestial.spacing.lg))
                     SearchField(
                         query = state.query,
@@ -209,7 +209,10 @@ private fun JuzRow(row: JuzRowUi, onClick: () -> Unit) {
         OctagramBadge(row.juz)
         Spacer(Modifier.width(Celestial.spacing.lg))
         Column {
-            BasicText(stringResource(Res.string.quran_juz_title, row.juz), style = Celestial.type.title.copy(color = colors.ink))
+            BasicText(
+                stringResource(Res.string.quran_juz_title, row.juz),
+                style = Celestial.type.title.copy(color = colors.ink),
+            )
             BasicText(
                 stringResource(Res.string.quran_juz_starts, row.surahName, row.start.surah, row.start.ayah),
                 style = Celestial.type.caption.copy(color = colors.inkMuted),

@@ -24,14 +24,6 @@ import dev.sadakat.qandeel.shared.presentation.progress.ProgressScreen
 import dev.sadakat.qandeel.shared.presentation.you.YouTab
 import dev.sadakat.qandeel.shared.presentation.you.YouTabActions
 
-/** Where the tabs lead outside themselves; the reader and the full player are still the phone's own. */
-class MainTabsNavigation(
-    val onOpenReader: (surah: Int, ayah: Int) -> Unit,
-    val onOpenPlayer: () -> Unit,
-    val onOpenProgress: () -> Unit,
-    val onOpenAbout: () -> Unit,
-)
-
 /**
  * The three tabs (`:shared`) on the phone, in the Celestial theme the settings choose, with the
  * mini player fed from the phone's player.
@@ -61,7 +53,11 @@ fun MainTabsRoute(
             selected = tab,
             onSelect = { tab = it },
             player = player.miniPlayer(),
-            playerActions = MiniPlayerActions(playerActions.onTogglePlay, playerActions.onNext, navigation.onOpenPlayer),
+            playerActions = MiniPlayerActions(
+                playerActions.onTogglePlay,
+                playerActions.onNext,
+                navigation.onOpenPlayer,
+            ),
             modifier = modifier,
         ) { selected, padding ->
             when (selected) {
@@ -69,9 +65,14 @@ fun MainTabsRoute(
                     home = home,
                     progress = progress,
                     playing = player.nowPlaying?.isPlaying == true,
-                    actions = HomeTabActions(navigation.onOpenReader, homeViewModel::onContinuePlayPause, navigation.onOpenProgress),
+                    actions = HomeTabActions(
+                        navigation.onOpenReader,
+                        homeViewModel::onContinuePlayPause,
+                        navigation.onOpenProgress,
+                    ),
                     contentPadding = padding,
                 )
+
                 MainTab.QURAN -> QuranTab(
                     state = home,
                     actions = QuranTabActions(
@@ -82,6 +83,7 @@ fun MainTabsRoute(
                     ),
                     contentPadding = padding,
                 )
+
                 MainTab.YOU -> YouTab(
                     settings = settings,
                     progress = progress,

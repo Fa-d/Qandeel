@@ -65,13 +65,6 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-/** What Home's controls do. */
-class HomeTabActions(
-    val onOpenReader: (surah: Int, ayah: Int) -> Unit,
-    val onContinuePlayPause: () -> Unit,
-    val onOpenProgress: () -> Unit,
-)
-
 /**
  * Home: the lantern hanging in the sky over the wordmark; then the one thing most often wanted,
  * to continue listening; then the surahs heard lately, and a glance at the whole Quran's progress.
@@ -97,7 +90,10 @@ fun HomeTab(
             modifier = Modifier
                 .fillMaxSize()
                 .testTag("home_list"),
-            contentPadding = PaddingValues(top = contentPadding.calculateTopPadding(), bottom = contentPadding.calculateBottomPadding()),
+            contentPadding = PaddingValues(
+                top = contentPadding.calculateTopPadding(),
+                bottom = contentPadding.calculateBottomPadding(),
+            ),
         ) {
             item(key = "hero") {
                 Box(Modifier.fillMaxWidth().height(HERO_HEIGHT.dp)) {
@@ -154,7 +150,10 @@ fun HomeTab(
                     ProgressGlance(
                         progress,
                         onClick = actions.onOpenProgress,
-                        modifier = Modifier.padding(horizontal = Celestial.spacing.gutter, vertical = Celestial.spacing.lg),
+                        modifier = Modifier.padding(
+                            horizontal = Celestial.spacing.gutter,
+                            vertical = Celestial.spacing.lg,
+                        ),
                     )
                 }
             }
@@ -165,20 +164,34 @@ fun HomeTab(
 private const val HERO_HEIGHT = 300
 private const val TILT_DISTANCE_PX = 900f
 private const val RECENT_COUNT = 8
+
+/** Past the hero, items are counted as this tall: only the depth effects read it. */
+private const val ITEM_ESTIMATE_PX = 1_000
 private const val IDLE_ENERGY = 0.2f
 private const val PLAYING_ENERGY = 0.55f
 
 /** How far the list has scrolled, in pixels: exact within the first item, estimated after it. */
-private fun LazyListState.scrollPixels(): Float =
-    if (firstVisibleItemIndex == 0) firstVisibleItemScrollOffset.toFloat() else (firstVisibleItemIndex * 1_000 + firstVisibleItemScrollOffset).toFloat()
+private fun LazyListState.scrollPixels(): Float = if (firstVisibleItemIndex ==
+    0
+) {
+    firstVisibleItemScrollOffset.toFloat()
+} else {
+    (firstVisibleItemIndex * ITEM_ESTIMATE_PX + firstVisibleItemScrollOffset).toFloat()
+}
 
 @Composable
 private fun Wordmark(modifier: Modifier = Modifier) {
     val colors = Celestial.colors
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        BasicText(stringResource(Res.string.home_wordmark), style = Celestial.type.headline.copy(color = colors.ink, fontSize = 24.sp))
+        BasicText(
+            stringResource(Res.string.home_wordmark),
+            style = Celestial.type.headline.copy(color = colors.ink, fontSize = 24.sp),
+        )
         Spacer(Modifier.weight(1f))
-        BasicText(stringResource(Res.string.home_wordmark_arabic), style = Celestial.quran.label.copy(color = colors.accent))
+        BasicText(
+            stringResource(Res.string.home_wordmark_arabic),
+            style = Celestial.quran.label.copy(color = colors.accent),
+        )
     }
 }
 
@@ -193,7 +206,11 @@ private fun ContinueCard(card: ContinueListeningUi, actions: HomeTabActions) {
     ) {
         Column(Modifier.padding(Celestial.spacing.gutter)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Eyebrow(stringResource(if (card.isCurrent) Res.string.home_now_playing else Res.string.home_continue_listening))
+                Eyebrow(
+                    stringResource(
+                        if (card.isCurrent) Res.string.home_now_playing else Res.string.home_continue_listening,
+                    ),
+                )
                 Spacer(Modifier.weight(1f))
                 BasicText(
                     stringResource(Res.string.home_card_progress, card.ayah, card.ayahCount),
@@ -232,8 +249,14 @@ private fun BeginCard(onOpen: () -> Unit) {
     GlassSurface(Modifier.fillMaxWidth().clickable(onClick = onOpen)) {
         Row(Modifier.padding(Celestial.spacing.gutter), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                BasicText(stringResource(Res.string.home_begin_title), style = Celestial.type.headline.copy(color = colors.ink))
-                BasicText(stringResource(Res.string.home_begin_text), style = Celestial.type.body.copy(color = colors.inkMuted))
+                BasicText(
+                    stringResource(Res.string.home_begin_title),
+                    style = Celestial.type.headline.copy(color = colors.ink),
+                )
+                BasicText(
+                    stringResource(Res.string.home_begin_text),
+                    style = Celestial.type.body.copy(color = colors.inkMuted),
+                )
             }
             Spacer(Modifier.width(Celestial.spacing.md))
             PlayButton(playing = false, label = stringResource(Res.string.home_begin_title), onClick = onOpen)
@@ -280,8 +303,24 @@ private fun ProgressGlance(progress: ProgressUiState, onClick: () -> Unit, modif
                         val stroke = 4.dp.toPx()
                         val arc = Size(size.width - stroke, size.height - stroke)
                         val topLeft = Offset(stroke / 2, stroke / 2)
-                        drawArc(colors.inkFaint.copy(alpha = 0.25f), 0f, 360f, false, topLeft, arc, style = Stroke(stroke))
-                        drawArc(colors.accent, -90f, 360f * progress.coverage, false, topLeft, arc, style = Stroke(stroke, cap = StrokeCap.Round))
+                        drawArc(
+                            colors.inkFaint.copy(alpha = 0.25f),
+                            0f,
+                            360f,
+                            false,
+                            topLeft,
+                            arc,
+                            style = Stroke(stroke),
+                        )
+                        drawArc(
+                            colors.accent,
+                            -90f,
+                            360f * progress.coverage,
+                            false,
+                            topLeft,
+                            arc,
+                            style = Stroke(stroke, cap = StrokeCap.Round),
+                        )
                     },
                 contentAlignment = Alignment.Center,
             ) {
@@ -292,7 +331,10 @@ private fun ProgressGlance(progress: ProgressUiState, onClick: () -> Unit, modif
             }
             Spacer(Modifier.width(Celestial.spacing.lg))
             Column(Modifier.weight(1f)) {
-                BasicText(stringResource(Res.string.home_progress_heard), style = Celestial.type.title.copy(color = colors.ink))
+                BasicText(
+                    stringResource(Res.string.home_progress_heard),
+                    style = Celestial.type.title.copy(color = colors.ink),
+                )
                 BasicText(
                     stringResource(Res.string.home_progress_line, listenTime(progress.listenedMs), progress.rows.size),
                     style = Celestial.type.caption.copy(color = colors.inkMuted),

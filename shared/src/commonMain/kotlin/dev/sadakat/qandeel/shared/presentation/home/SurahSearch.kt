@@ -1,7 +1,6 @@
 package dev.sadakat.qandeel.shared.presentation.home
 
 import dev.sadakat.qandeel.core.domain.model.Surah
-import java.util.Locale
 
 /**
  * Surah search that tolerates how people actually type surah names: transliterations vary
@@ -28,9 +27,11 @@ internal object SurahSearch {
         return latinMatch || arabicMatch
     }
 
+    // lowercase() is locale-invariant in Kotlin: no Turkish dotless i.
+
     /** Lower case letters only, long vowels folded (ee→i, oo→u, doubled letters once), final vowel+h dropped. */
     private fun latin(text: String): String {
-        val letters = text.lowercase(Locale.ROOT)
+        val letters = text.lowercase()
             .filter { it in 'a'..'z' }
             .replace("ee", "i")
             .replace("oo", "u")

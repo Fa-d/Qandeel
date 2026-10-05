@@ -28,10 +28,7 @@ data class SettingsUiState(
  * once; a change to what plays re-queues the recitation at the same ayah, playing or paused as it was.
  */
 @Suppress("TooManyFunctions") // One setter per setting, each a one-liner on the settings.
-class SettingsViewModel(
-    private val settings: QuranSettings,
-    private val player: QuranPlayer,
-) : ViewModel() {
+class SettingsViewModel(private val settings: QuranSettings, private val player: QuranPlayer) : ViewModel() {
 
     val uiState: StateFlow<SettingsUiState> =
         combine(settings.mode, settings.banglaVoice, settings.readingPrefs, ::SettingsUiState)
@@ -41,7 +38,11 @@ class SettingsViewModel(
         viewModelScope.launch {
             settings.setMode(mode)
             player.nowPlaying.value?.let { current ->
-                if (current.mode != mode) player.play(current.surah, current.ayah, mode, playWhenReady = current.isPlaying)
+                if (current.mode !=
+                    mode
+                ) {
+                    player.play(current.surah, current.ayah, mode, playWhenReady = current.isPlaying)
+                }
             }
         }
     }

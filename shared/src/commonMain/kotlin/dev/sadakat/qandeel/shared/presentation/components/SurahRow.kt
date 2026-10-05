@@ -46,7 +46,15 @@ import kotlin.math.roundToInt
 fun SurahRow(row: SurahRowUi, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val colors = Celestial.colors
     val surah = row.surah
-    val revelation = stringResource(if (surah.revelation == Revelation.MECCAN) Res.string.quran_meccan else Res.string.quran_medinan)
+    val revelation = stringResource(
+        if (surah.revelation ==
+            Revelation.MECCAN
+        ) {
+            Res.string.quran_meccan
+        } else {
+            Res.string.quran_medinan
+        },
+    )
     val playing = stringResource(Res.string.quran_cd_playing)
     Row(
         modifier
@@ -84,8 +92,14 @@ private fun DownloadMark(state: SurahDownloadState, modifier: Modifier = Modifie
     val colors = Celestial.colors
     val description = when (state) {
         SurahDownloadState.NotDownloaded -> return
+
         SurahDownloadState.Downloaded -> stringResource(Res.string.quran_cd_downloaded)
-        is SurahDownloadState.Downloading -> stringResource(Res.string.quran_cd_downloading, (state.progress * 100).roundToInt())
+
+        is SurahDownloadState.Downloading -> stringResource(
+            Res.string.quran_cd_downloading,
+            (state.progress * 100).roundToInt(),
+        )
+
         is SurahDownloadState.Failed -> stringResource(Res.string.quran_cd_download_failed)
     }
     val (fraction, color) = when (state) {
@@ -103,7 +117,15 @@ private fun DownloadMark(state: SurahDownloadState, modifier: Modifier = Modifie
                 val arc = Size(size.width - stroke, size.height - stroke)
                 val topLeft = Offset(stroke / 2, stroke / 2)
                 drawArc(colors.inkFaint.copy(alpha = 0.3f), 0f, 360f, false, topLeft, arc, style = Stroke(stroke))
-                drawArc(color, -90f, 360f * fraction, false, topLeft, arc, style = Stroke(stroke, cap = StrokeCap.Round))
+                drawArc(
+                    color,
+                    -90f,
+                    360f * fraction,
+                    false,
+                    topLeft,
+                    arc,
+                    style = Stroke(stroke, cap = StrokeCap.Round),
+                )
             },
     )
 }

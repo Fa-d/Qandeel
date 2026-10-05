@@ -19,31 +19,14 @@ import dev.sadakat.qandeel.shared.presentation.home.HomeViewModel
 import dev.sadakat.qandeel.shared.presentation.progress.ProgressViewModel
 import dev.sadakat.qandeel.shared.presentation.you.SettingsViewModel
 
-/**
- * The domain ports the multiplatform ViewModels (`:shared`) are built from. They can't use Hilt
- * themselves, so the phone app hands them what Hilt provides.
- */
-@EntryPoint
-@InstallIn(SingletonComponent::class)
-interface SharedPorts {
-    fun quranText(): QuranText
-
-    fun settings(): QuranSettings
-
-    fun downloads(): SurahDownloads
-
-    fun player(): QuranPlayer
-
-    fun history(): ListeningHistory
-}
-
 @Composable
 private fun sharedPorts(): SharedPorts {
     val context = LocalContext.current
     return remember(context) { context.sharedPorts() }
 }
 
-private fun Context.sharedPorts(): SharedPorts = EntryPointAccessors.fromApplication(applicationContext, SharedPorts::class.java)
+private fun Context.sharedPorts(): SharedPorts =
+    EntryPointAccessors.fromApplication(applicationContext, SharedPorts::class.java)
 
 /** Home and the Quran tab's ViewModel, scoped like a Hilt one to the current destination. */
 @Composable

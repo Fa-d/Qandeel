@@ -52,7 +52,10 @@ fun CenteredMessage(
     ) {
         BasicText(title, style = Celestial.type.title.copy(color = Celestial.colors.ink, textAlign = TextAlign.Center))
         Spacer(Modifier.height(Celestial.spacing.xs))
-        BasicText(text, style = Celestial.type.body.copy(color = Celestial.colors.inkMuted, textAlign = TextAlign.Center))
+        BasicText(
+            text,
+            style = Celestial.type.body.copy(color = Celestial.colors.inkMuted, textAlign = TextAlign.Center),
+        )
         if (action != null) {
             Spacer(Modifier.height(Celestial.spacing.lg))
             PrimaryButton(action, onClick = onAction)
@@ -66,7 +69,9 @@ fun listenTime(ms: Long): String {
     val minutes = ms / MS_PER_MINUTE
     return when {
         minutes < 1 -> stringResource(Res.string.progress_time_under_minute)
+
         minutes < MINUTES_PER_HOUR -> stringResource(Res.string.progress_time_minutes, minutes.toInt())
+
         else -> stringResource(
             Res.string.progress_time_hours_minutes,
             (minutes / MINUTES_PER_HOUR).toInt(),

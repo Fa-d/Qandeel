@@ -67,11 +67,7 @@ data class MiniPlayerUi(
 )
 
 /** What the mini player's controls do. */
-class MiniPlayerActions(
-    val onTogglePlay: () -> Unit,
-    val onNext: () -> Unit,
-    val onExpand: () -> Unit,
-)
+class MiniPlayerActions(val onTogglePlay: () -> Unit, val onNext: () -> Unit, val onExpand: () -> Unit)
 
 /**
  * The app's frame: the [selected] tab's content, and over it, floating at the bottom, the mini
@@ -94,7 +90,9 @@ fun MainTabs(
     )
     val safe = WindowInsets.safeDrawing.asPaddingValues()
     val layoutDirection = LocalLayoutDirection.current
-    val bottom = chromeHeight(hasPlayer = player != null) + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val bottom =
+        chromeHeight(hasPlayer = player != null) +
+            WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val contentPadding = PaddingValues(
         start = safe.calculateStartPadding(layoutDirection),
         top = safe.calculateTopPadding(),

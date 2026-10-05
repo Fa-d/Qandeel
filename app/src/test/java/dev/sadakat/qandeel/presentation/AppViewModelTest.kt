@@ -1,12 +1,12 @@
 package dev.sadakat.qandeel.presentation
 
-import dev.sadakat.qandeel.core.testing.awaitWhere
 import app.cash.turbine.test
 import dev.sadakat.qandeel.core.domain.model.ArabicTextSize
 import dev.sadakat.qandeel.core.domain.model.ReadingPrefs
 import dev.sadakat.qandeel.core.domain.model.ThemeMode
 import dev.sadakat.qandeel.core.testing.FakeQuranSettings
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
+import dev.sadakat.qandeel.core.testing.awaitWhere
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

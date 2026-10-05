@@ -6,9 +6,9 @@ import dev.sadakat.qandeel.core.domain.model.BanglaVoice
 import dev.sadakat.qandeel.core.domain.model.ReadingPrefs
 import dev.sadakat.qandeel.core.domain.model.RecitationMode
 import dev.sadakat.qandeel.core.domain.model.ThemeMode
+import dev.sadakat.qandeel.core.domain.model.Track
 import dev.sadakat.qandeel.core.domain.model.WordByWord
 import dev.sadakat.qandeel.core.domain.player.NowPlaying
-import dev.sadakat.qandeel.core.domain.model.Track
 import dev.sadakat.qandeel.core.testing.FakeQuranPlayer
 import dev.sadakat.qandeel.core.testing.FakeQuranSettings
 import dev.sadakat.qandeel.core.testing.MainDispatcherRule
@@ -29,7 +29,8 @@ class SettingsViewModelTest {
     private fun viewModel() = SettingsViewModel(settings, player)
 
     private fun playing(mode: RecitationMode, voice: BanglaVoice = BanglaVoice.DEFAULT, isPlaying: Boolean = true) {
-        player.nowPlaying.value = NowPlaying(18, 10, Track.ARABIC, mode, isPlaying = isPlaying, isBuffering = false, voice = voice)
+        player.nowPlaying.value =
+            NowPlaying(18, 10, Track.ARABIC, mode, isPlaying = isPlaying, isBuffering = false, voice = voice)
     }
 
     @Test
@@ -76,7 +77,10 @@ class SettingsViewModelTest {
         viewModel().setMode(RecitationMode.ARABIC_ONLY)
 
         assertEquals(RecitationMode.ARABIC_ONLY, settings.mode.value)
-        assertEquals(FakeQuranPlayer.PlayCall(18, 10, RecitationMode.ARABIC_ONLY, playWhenReady = false), player.playCalls.single())
+        assertEquals(
+            FakeQuranPlayer.PlayCall(18, 10, RecitationMode.ARABIC_ONLY, playWhenReady = false),
+            player.playCalls.single(),
+        )
     }
 
     @Test

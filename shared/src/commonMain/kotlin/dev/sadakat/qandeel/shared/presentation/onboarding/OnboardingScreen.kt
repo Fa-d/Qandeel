@@ -262,7 +262,11 @@ private fun TopBar(page: Int, onSkip: () -> Unit) {
     ) {
         // Skipping is for those who know what they want; on the last page, finishing is as quick.
         if (page < ONBOARDING_PAGES - 1) {
-            QuietButton(stringResource(Res.string.onboarding_skip), onClick = onSkip, modifier = Modifier.testTag("onboarding_skip"))
+            QuietButton(
+                stringResource(Res.string.onboarding_skip),
+                onClick = onSkip,
+                modifier = Modifier.testTag("onboarding_skip"),
+            )
         }
     }
 }

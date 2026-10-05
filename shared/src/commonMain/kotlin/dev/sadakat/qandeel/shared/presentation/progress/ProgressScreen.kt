@@ -69,14 +69,6 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-/** What the Progress screen's controls do. */
-class ProgressActions(
-    val onBack: () -> Unit,
-    val onOrderChange: (ListeningOrder) -> Unit,
-    val onReset: () -> Unit,
-    val onOpenReader: (surah: Int, ayah: Int) -> Unit,
-)
-
 /**
  * Your listening: how much of the Quran you've heard and for how long, then every surah heard,
  * recent first (or most heard, or in order), each with its full rounds and how far into the next.
@@ -95,11 +87,19 @@ fun ProgressScreen(state: ProgressUiState, actions: ProgressActions, modifier: M
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize().testTag("progress_list"),
-            contentPadding = PaddingValues(top = safe.calculateTopPadding(), bottom = safe.calculateBottomPadding() + Celestial.spacing.xl),
+            contentPadding = PaddingValues(
+                top = safe.calculateTopPadding(),
+                bottom =
+                safe.calculateBottomPadding() + Celestial.spacing.xl,
+            ),
         ) {
             item(key = "header") {
                 Column(Modifier.padding(horizontal = Celestial.spacing.gutter)) {
-                    GlyphButton(CelestialIcons.Back, label = stringResource(Res.string.progress_back), onClick = actions.onBack)
+                    GlyphButton(
+                        CelestialIcons.Back,
+                        label = stringResource(Res.string.progress_back),
+                        onClick = actions.onBack,
+                    )
                     ScreenHeader(stringResource(Res.string.progress_title))
                     Spacer(Modifier.height(Celestial.spacing.lg))
                     if (!state.isLoading) Summary(state)
@@ -107,7 +107,10 @@ fun ProgressScreen(state: ProgressUiState, actions: ProgressActions, modifier: M
             }
             if (!state.isLoading && state.isEmpty) {
                 item(key = "empty") {
-                    CenteredMessage(stringResource(Res.string.progress_empty_title), stringResource(Res.string.progress_empty_text))
+                    CenteredMessage(
+                        stringResource(Res.string.progress_empty_title),
+                        stringResource(Res.string.progress_empty_text),
+                    )
                 }
             } else if (!state.isLoading) {
                 item(key = "order") {
@@ -164,7 +167,11 @@ private fun Summary(state: ProgressUiState) {
             ProgressLine(state.coverage, Modifier.fillMaxWidth().height(Celestial.spacing.xs))
             Spacer(Modifier.height(Celestial.spacing.sm))
             BasicText(
-                stringResource(Res.string.progress_coverage_line, (state.coverage * 100).roundToInt(), listenTime(state.listenedMs)),
+                stringResource(
+                    Res.string.progress_coverage_line,
+                    (state.coverage * 100).roundToInt(),
+                    listenTime(state.listenedMs),
+                ),
                 style = Celestial.type.caption.copy(color = colors.inkMuted),
             )
             if (state.rounds > 0) {
@@ -204,7 +211,11 @@ private fun ProgressRow(row: ProgressRowUi, onClick: () -> Unit) {
                 listOf(
                     pluralStringResource(Res.plurals.progress_full_rounds, row.rounds, row.rounds),
                     pluralStringResource(Res.plurals.progress_listens, row.totalListens, row.totalListens),
-                    stringResource(Res.string.progress_into_round, (row.nextRoundProgress * 100).roundToInt(), row.rounds + 1),
+                    stringResource(
+                        Res.string.progress_into_round,
+                        (row.nextRoundProgress * 100).roundToInt(),
+                        row.rounds + 1,
+                    ),
                 ).joinToString(" · "),
                 style = Celestial.type.caption.copy(color = colors.inkMuted),
                 maxLines = 1,
@@ -224,11 +235,21 @@ private fun ResetDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss) {
         GlassSurface(strong = true) {
             Column(Modifier.padding(Celestial.spacing.xl)) {
-                BasicText(stringResource(Res.string.progress_reset_title), style = Celestial.type.title.copy(color = Celestial.colors.ink))
+                BasicText(
+                    stringResource(Res.string.progress_reset_title),
+                    style = Celestial.type.title.copy(color = Celestial.colors.ink),
+                )
                 Spacer(Modifier.height(Celestial.spacing.sm))
-                BasicText(stringResource(Res.string.progress_reset_text), style = Celestial.type.body.copy(color = Celestial.colors.inkMuted))
+                BasicText(
+                    stringResource(Res.string.progress_reset_text),
+                    style = Celestial.type.body.copy(color = Celestial.colors.inkMuted),
+                )
                 Spacer(Modifier.height(Celestial.spacing.lg))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     QuietButton(stringResource(Res.string.progress_reset_cancel), onClick = onDismiss)
                     Spacer(Modifier.width(Celestial.spacing.sm))
                     PrimaryButton(stringResource(Res.string.progress_reset_confirm), onClick = onConfirm)

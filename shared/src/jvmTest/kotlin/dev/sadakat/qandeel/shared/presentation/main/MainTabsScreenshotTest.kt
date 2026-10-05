@@ -1,5 +1,6 @@
 package dev.sadakat.qandeel.shared.presentation.main
 
+import dev.sadakat.qandeel.core.domain.model.AyahRef
 import dev.sadakat.qandeel.core.domain.model.ListeningOrder
 import dev.sadakat.qandeel.core.domain.model.RecitationMode
 import dev.sadakat.qandeel.core.domain.model.Revelation
@@ -20,7 +21,6 @@ import dev.sadakat.qandeel.shared.presentation.progress.ProgressRowUi
 import dev.sadakat.qandeel.shared.presentation.progress.ProgressScreen
 import dev.sadakat.qandeel.shared.presentation.progress.ProgressUiState
 import dev.sadakat.qandeel.shared.presentation.you.SettingsUiState
-import dev.sadakat.qandeel.core.domain.model.AyahRef
 import dev.sadakat.qandeel.shared.presentation.you.YouTab
 import dev.sadakat.qandeel.shared.presentation.you.YouTabActions
 import org.junit.Test
@@ -52,7 +52,15 @@ class MainTabsScreenshotTest {
 
     private val home = HomeUiState(
         isLoading = false,
-        continueListening = ContinueListeningUi(18, "Al-Kahf", "ٱلْكَهْفِ", ayah = 10, ayahCount = 110, isCurrent = true, isPlaying = true),
+        continueListening = ContinueListeningUi(
+            18,
+            "Al-Kahf",
+            "ٱلْكَهْفِ",
+            ayah = 10,
+            ayahCount = 110,
+            isCurrent = true,
+            isPlaying = true,
+        ),
         surahs = rows,
     )
 
@@ -71,18 +79,36 @@ class MainTabsScreenshotTest {
         ),
     )
 
-    private val player = MiniPlayerUi(18, "Al-Kahf", ayah = 10, modeLabel = RecitationMode.ARABIC_BANGLA.label, progress = 10 / 110f, isPlaying = true)
+    private val player =
+        MiniPlayerUi(
+            18,
+            "Al-Kahf",
+            ayah = 10,
+            modeLabel = RecitationMode.ARABIC_BANGLA.label,
+            progress =
+            10 / 110f,
+            isPlaying = true,
+        )
     private val playerActions = MiniPlayerActions({}, {}, {})
 
     private fun tabs(name: String, tab: MainTab, night: Boolean = true) = phoneSnapshot("tabs_$name", night) {
         MainTabs(tab, onSelect = {}, player = player, playerActions = playerActions) { selected, padding ->
             when (selected) {
-                MainTab.HOME -> HomeTab(home, progress, playing = true, actions = HomeTabActions({ _, _ -> }, {}, {}), contentPadding = padding)
+                MainTab.HOME -> HomeTab(
+                    home,
+                    progress,
+                    playing = true,
+                    actions = HomeTabActions({ _, _ ->
+                    }, {}, {}),
+                    contentPadding = padding,
+                )
+
                 MainTab.QURAN -> QuranTab(
                     home,
                     QuranTabActions({}, {}, { _, _ -> }, {}),
                     contentPadding = padding,
                 )
+
                 MainTab.YOU -> YouTab(SettingsUiState(), progress, YouTabActions(), contentPadding = padding)
             }
         }
@@ -103,14 +129,28 @@ class MainTabsScreenshotTest {
     @Test
     fun aFreshHomeOffersAlFatiha() = phoneSnapshot("tabs_home_fresh", night = true) {
         MainTabs(MainTab.HOME, onSelect = {}, player = null, playerActions = playerActions) { _, padding ->
-            HomeTab(HomeUiState(isLoading = false), ProgressUiState(isLoading = false), false, HomeTabActions({ _, _ -> }, {}, {}), contentPadding = padding)
+            HomeTab(
+                HomeUiState(isLoading = false),
+                ProgressUiState(isLoading = false),
+                false,
+                HomeTabActions({ _, _ ->
+                }, {}, {}),
+                contentPadding = padding,
+            )
         }
     }
 
     @Test
     fun aVerseReference() = phoneSnapshot("tabs_quran_jump", night = true) {
         QuranTab(
-            home.copy(query = "18:10", jumpTarget = AyahJumpUi(AyahRef(18, 10), "Al-Kahf"), surahs = rows.filter { it.surah.number == 18 }),
+            home.copy(
+                query = "18:10",
+                jumpTarget = AyahJumpUi(AyahRef(18, 10), "Al-Kahf"),
+                surahs = rows.filter {
+                    it.surah.number ==
+                        18
+                },
+            ),
             QuranTabActions({}, {}, { _, _ -> }, {}),
         )
     }

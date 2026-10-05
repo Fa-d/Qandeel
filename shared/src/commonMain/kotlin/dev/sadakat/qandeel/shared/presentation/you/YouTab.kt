@@ -80,20 +80,6 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-/** What the You tab's controls do: the settings ViewModel's setters, and where it leads. */
-data class YouTabActions(
-    val onModeChange: (RecitationMode) -> Unit = {},
-    val onVoiceChange: (BanglaVoice) -> Unit = {},
-    val onArabicTextSizeChange: (ArabicTextSize) -> Unit = {},
-    val onShowTranslationChange: (Boolean) -> Unit = {},
-    val onFollowAlongChange: (Boolean) -> Unit = {},
-    val onWordByWordChange: (WordByWord) -> Unit = {},
-    val onThemeModeChange: (ThemeMode) -> Unit = {},
-    val onReduceMotionChange: (Boolean) -> Unit = {},
-    val onOpenProgress: () -> Unit = {},
-    val onOpenAbout: () -> Unit = {},
-)
-
 /**
  * You: how far you've come (a card that opens Progress), then every setting, grouped by what it
  * changes (listening, reading, appearance), and the sources and credits.
@@ -125,7 +111,11 @@ fun YouTab(
             ReadingSection(settings, actions)
             AppearanceSection(settings, actions)
             Section(Res.string.you_about) {
-                LinkRow(stringResource(Res.string.you_about), stringResource(Res.string.you_about_detail), actions.onOpenAbout)
+                LinkRow(
+                    stringResource(Res.string.you_about),
+                    stringResource(Res.string.you_about_detail),
+                    actions.onOpenAbout,
+                )
             }
             Spacer(Modifier.height(Celestial.spacing.xl))
         }
@@ -156,7 +146,11 @@ private fun ProgressCard(progress: ProgressUiState, onClick: () -> Unit) {
             ProgressLine(progress.coverage, Modifier.fillMaxWidth().height(Celestial.spacing.xs))
             Spacer(Modifier.height(Celestial.spacing.sm))
             BasicText(
-                stringResource(Res.string.progress_coverage_line, (progress.coverage * 100).roundToInt(), listenTime(progress.listenedMs)),
+                stringResource(
+                    Res.string.progress_coverage_line,
+                    (progress.coverage * 100).roundToInt(),
+                    listenTime(progress.listenedMs),
+                ),
                 style = Celestial.type.caption.copy(color = colors.inkMuted),
             )
         }
@@ -166,7 +160,7 @@ private fun ProgressCard(progress: ProgressUiState, onClick: () -> Unit) {
 private const val TOTAL_AYAHS = "6,236"
 
 @Composable
-private fun Section(title: StringResource, content: @Composable ColumnScope.() -> Unit) {
+private fun ColumnScope.Section(title: StringResource, content: @Composable ColumnScope.() -> Unit) {
     Spacer(Modifier.height(Celestial.spacing.xl))
     Eyebrow(stringResource(title))
     Spacer(Modifier.height(Celestial.spacing.sm))
@@ -178,11 +172,15 @@ private fun Section(title: StringResource, content: @Composable ColumnScope.() -
 private val voiceNames = listOf(
     Triple(BanglaVoice.ISLAMIC_FOUNDATION, Res.string.onboarding_voice_if, Res.string.onboarding_voice_if_detail),
     Triple(BanglaVoice.SAYED_ISMAT_TOHA, Res.string.onboarding_voice_toha, Res.string.onboarding_voice_toha_detail),
-    Triple(BanglaVoice.SHAREEF_BAEZEED_MAHMOOD, Res.string.onboarding_voice_baezeed, Res.string.onboarding_voice_baezeed_detail),
+    Triple(
+        BanglaVoice.SHAREEF_BAEZEED_MAHMOOD,
+        Res.string.onboarding_voice_baezeed,
+        Res.string.onboarding_voice_baezeed_detail,
+    ),
 )
 
 @Composable
-private fun ListeningSection(settings: SettingsUiState, actions: YouTabActions) {
+private fun ColumnScope.ListeningSection(settings: SettingsUiState, actions: YouTabActions) {
     Section(Res.string.you_settings_listening) {
         Label(Res.string.you_mode)
         val modes = mapOf(
@@ -217,13 +215,15 @@ private fun ListeningSection(settings: SettingsUiState, actions: YouTabActions) 
 }
 
 @Composable
-private fun ReadingSection(settings: SettingsUiState, actions: YouTabActions) {
+private fun ColumnScope.ReadingSection(settings: SettingsUiState, actions: YouTabActions) {
     val prefs = settings.prefs
     Section(Res.string.you_settings_reading) {
         Label(Res.string.onboarding_arabic_size)
         val sizes = ArabicTextSize.entries
         SizeSteps(
-            descriptions = sizes.indices.map { stringResource(Res.string.onboarding_arabic_size_step, it + 1, sizes.size) },
+            descriptions = sizes.indices.map {
+                stringResource(Res.string.onboarding_arabic_size_step, it + 1, sizes.size)
+            },
             selected = sizes.indexOf(prefs.arabicTextSize),
             onSelect = { actions.onArabicTextSizeChange(sizes[it]) },
         )
@@ -256,7 +256,7 @@ private fun ReadingSection(settings: SettingsUiState, actions: YouTabActions) {
 }
 
 @Composable
-private fun AppearanceSection(settings: SettingsUiState, actions: YouTabActions) {
+private fun ColumnScope.AppearanceSection(settings: SettingsUiState, actions: YouTabActions) {
     val prefs = settings.prefs
     Section(Res.string.you_settings_appearance) {
         Spacer(Modifier.height(Celestial.spacing.sm))
