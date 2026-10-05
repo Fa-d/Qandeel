@@ -14,7 +14,7 @@ This directory contains Claude skills for the Qandeel project — a Quran player
 | `repositories.md` | Ports and their adapters | `QuranText`, `QuranSettings`, `SurahDownloads`, `QuranPlayer` |
 | `dependency-injection.md` | Hilt DI setup | Modules, bindings, singletons |
 | `data-flow.md` | Data flow patterns | Flows into `UiState`, download state, playback state |
-| `ui-compose.md` | Jetpack Compose UI | Screens, ViewModels, UDF conventions, navigation |
+| `ui-compose.md` | Compose UI: the phone in `:shared` (Compose Multiplatform), the watch in `:wear` | Screens, ViewModels, Celestial design system, UDF conventions, navigation |
 | `file-locations.md` | File location reference | All important file paths |
 | `build-config.md` | Build configuration | Gradle, versions, commands, quality gate |
 | `wearable-communication.md` | Phone-watch communication | MessageClient, capabilities, `/quran/download` |
@@ -24,14 +24,17 @@ This directory contains Claude skills for the Qandeel project — a Quran player
 ## Quick Lookups
 
 ### Module Namespaces
-- Domain: `dev.sadakat.qandeel.core.domain` (`:core:domain`, pure Kotlin/JVM)
+- Domain: `dev.sadakat.qandeel.core.domain` (`:core:domain`, Kotlin Multiplatform: JVM, iOS)
 - Data: `dev.sadakat.qandeel.core.data` (`:core:data`, Android library)
-- Phone app: `dev.sadakat.qandeel` (`:app`)
+- Phone UI: `dev.sadakat.qandeel.shared` (`:shared`, Compose Multiplatform: Android, iOS, JVM tests)
+- Phone app (Android shell): `dev.sadakat.qandeel` (`:app`)
+- Watch design tokens: `dev.sadakat.qandeel.core.designsystem` (`:core:designsystem`)
 - Wear app: `dev.sadakat.qandeel.wear` (`:wear`)
 - Test fakes: `dev.sadakat.qandeel.core.testing` (`:core:testing`)
 
 ### Key Entry Points
-- Phone: `QandeelApplication`, `MainActivity`
+- Phone: `QandeelApplication`, `MainActivity` (hosts `:shared`'s `QandeelApp`; `AndroidQandeelGraph`
+  hands it the ports)
 - Wear: `WearApplication` (starts `WifiForDownloads`), `presentation/MainActivity`
 
 ### Key Domain Types
@@ -63,7 +66,7 @@ This directory contains Claude skills for the Qandeel project — a Quran player
 | Adding a domain model | `domain-entities.md` |
 | Adding/changed pure logic | `domain-services.md` |
 | Adding a new port or adapter | `repositories.md`, `architecture.md` |
-| Modifying UI | `ui-compose.md` |
+| Modifying UI (phone: `:shared`; watch: `:wear`) | `ui-compose.md` |
 | Phone-watch communication | `wearable-communication.md` |
 | Playback or download changes | `media-playback.md` |
 | Finding file locations | `file-locations.md` |

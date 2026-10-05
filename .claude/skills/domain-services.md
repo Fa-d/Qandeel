@@ -52,7 +52,7 @@ Navigation indexes (operate on `List<QueueItemId>`):
   to many; per-surah files like `"bn/intro/2"` to one).
 
 ## Presentation-side pure logic
-`app/.../surahlist/SurahSearch.kt` (`internal object SurahSearch`) is UI support logic, not a
+`shared/src/commonMain/kotlin/dev/sadakat/qandeel/shared/presentation/home/SurahSearch.kt` (`internal object SurahSearch`) is UI support logic, not a
 domain object: `matches(surah, rawQuery)` finds surahs however their names are spelled —
 transliteration variants folded (ee→i, oo→u, doubled letters collapsed, trailing vowel+h dropped),
 Arabic matched without diacritics (marks stripped, alef forms unified, ta marbuta → ha, alef

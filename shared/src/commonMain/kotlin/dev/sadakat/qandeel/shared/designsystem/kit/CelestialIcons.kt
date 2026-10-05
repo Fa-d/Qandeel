@@ -92,6 +92,76 @@ object CelestialIcons {
         }
     }
 
+    /** A tick, for what is chosen. */
+    val Check: ImageVector by lazy {
+        stroked("Check") {
+            moveTo(5f, 12.5f)
+            lineTo(10f, 17.5f)
+            lineTo(19f, 7f)
+        }
+    }
+
+    /** Down: closes what rose from the bottom. */
+    val Down: ImageVector by lazy {
+        stroked("Down") {
+            moveTo(5f, 9f)
+            lineTo(12f, 16f)
+            lineTo(19f, 9f)
+        }
+    }
+
+    /** Filled: the previous ayah. */
+    val Previous: ImageVector by lazy {
+        filled("Previous") {
+            moveTo(19f, 6.2f)
+            curveTo(19f, 5.4f, 18.1f, 4.9f, 17.4f, 5.4f)
+            lineTo(9.6f, 10.9f)
+            curveTo(9f, 11.3f, 9f, 12.2f, 9.6f, 12.6f)
+            lineTo(17.4f, 18.1f)
+            curveTo(18.1f, 18.6f, 19f, 18.1f, 19f, 17.3f)
+            close()
+            roundedBar(5.5f, width = 2.5f)
+        }
+    }
+
+    /** Download: an arrow into a tray. */
+    val Download: ImageVector by lazy {
+        stroked("Download") {
+            moveTo(12f, 4f)
+            verticalLineTo(15f)
+            moveTo(7.5f, 10.5f)
+            lineTo(12f, 15f)
+            lineTo(16.5f, 10.5f)
+            moveTo(5f, 19.5f)
+            horizontalLineTo(19f)
+        }
+    }
+
+    /** Text settings: two letters, small and large. */
+    val TextSize: ImageVector by lazy {
+        stroked("TextSize") {
+            moveTo(3f, 19f)
+            lineTo(7.5f, 9f)
+            lineTo(12f, 19f)
+            moveTo(4.6f, 15.5f)
+            horizontalLineTo(10.4f)
+            moveTo(12.5f, 19f)
+            lineTo(16.5f, 5f)
+            lineTo(20.5f, 19f)
+            moveTo(14f, 14f)
+            horizontalLineTo(19f)
+        }
+    }
+
+    /** More actions: three dots. */
+    val More: ImageVector by lazy {
+        filled("More") {
+            dot(12f, 5.5f)
+            dot(12f, 12f)
+            dot(12f, 18.5f)
+        }
+    }
+
     /** Filled. */
     val Play: ImageVector by lazy {
         filled("Play") {
@@ -125,6 +195,13 @@ object CelestialIcons {
             close()
             roundedBar(16f, width = 2.5f)
         }
+    }
+
+    private fun PathBuilder.dot(x: Float, y: Float, r: Float = 1.8f) {
+        moveTo(x, y - r)
+        curveTo(x + r * 1.33f, y - r, x + r * 1.33f, y + r, x, y + r)
+        curveTo(x - r * 1.33f, y + r, x - r * 1.33f, y - r, x, y - r)
+        close()
     }
 
     private fun PathBuilder.roundedBar(left: Float, width: Float = 4f) {

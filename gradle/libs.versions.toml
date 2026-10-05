@@ -39,6 +39,7 @@ haze = "1.7.3"
 
 # Compose Multiplatform: the shared phone UI (Android, iOS, and the JVM for screenshot tests)
 composeMultiplatform = "1.12.1"
+cmpNavigation = "2.9.2"
 
 # Startup performance
 benchmark = "1.5.0"
@@ -138,6 +139,7 @@ cmp-foundation = { group = "org.jetbrains.compose.foundation", name = "foundatio
 cmp-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "composeMultiplatform" }
 cmp-components-resources = { group = "org.jetbrains.compose.components", name = "components-resources", version.ref = "composeMultiplatform" }
 cmp-ui-test = { group = "org.jetbrains.compose.ui", name = "ui-test", version.ref = "composeMultiplatform" }
+cmp-navigation-compose = { group = "org.jetbrains.androidx.navigation", name = "navigation-compose", version.ref = "cmpNavigation" }
 cmp-lifecycle-viewmodel-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 cmp-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
 roborazzi-compose-desktop = { group = "io.github.takahirom.roborazzi", name = "roborazzi-compose-desktop", version.ref = "roborazzi" }

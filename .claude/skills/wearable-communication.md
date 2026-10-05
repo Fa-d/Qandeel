@@ -15,13 +15,17 @@ CapabilityClient). playServicesWearable 18.1.0.
 
 ## Phone side (`:app`)
 
-- `watch/WatchConnection.kt` — the interface (`isWatchReachable()`, `sendDownload(surah, tracks):
-  Result<Int>`), abstracted so ViewModels test without Play services
+- `WatchConnection` — the interface (`isWatchReachable()`, `sendDownload(surah, tracks):
+  Result<Int>`), a domain port in
+  `core/domain/src/commonMain/kotlin/dev/sadakat/qandeel/core/domain/repository/WatchConnection.kt`,
+  so the shared ViewModels test without Play services (`FakeWatchConnection`) and iOS can say no
+  watch is reachable
 - `watch/WatchLink.kt` — the implementation: looks up reachable nodes by the `qandeel_watch_app`
   capability, sends the JSON payload on `/quran/download` to each (counts nodes that acknowledge ≥
   0 bytes; fails when none did; `ApiException` — no Wear OS services — means "no watch")
 - `di/WatchModule.kt` binds `WatchLink` as `WatchConnection`
-- Used by `SurahReaderViewModel.sendToWatch()`; the result is shown as a snackbar
+- Used by `:shared`'s `SurahReaderViewModel.sendToWatch()` (and onboarding's offline step); the
+  result is shown as a toast
   (`ReaderMessage.SentToWatch(count)` / `NoWatch`)
 
 ## Watch side (`:wear`)

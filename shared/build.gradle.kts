@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.roborazzi)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -54,6 +55,8 @@ kotlin {
             implementation(libs.cmp.components.resources)
             api(libs.cmp.lifecycle.viewmodel.compose)
             implementation(libs.cmp.lifecycle.runtime.compose)
+            implementation(libs.cmp.navigation.compose)
+            implementation(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
             implementation(compose.desktop.currentOs)

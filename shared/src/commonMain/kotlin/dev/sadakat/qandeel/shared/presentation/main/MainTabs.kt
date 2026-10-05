@@ -122,7 +122,7 @@ fun MainTabs(
                 enter = slideInVertically { it } + fadeIn(),
                 exit = slideOutVertically { it } + fadeOut(),
             ) {
-                if (player != null) MiniPlayer(player, playerActions)
+                if (player != null) MiniPlayerBar(player, playerActions)
             }
             Spacer(Modifier.height(Celestial.spacing.sm))
             FloatingTabBar(
@@ -135,8 +135,9 @@ fun MainTabs(
     }
 }
 
+/** The mini player: what plays and how far, play/pause and next; the rest of it opens the full player. */
 @Composable
-private fun MiniPlayer(player: MiniPlayerUi, actions: MiniPlayerActions) {
+fun MiniPlayerBar(player: MiniPlayerUi, actions: MiniPlayerActions, modifier: Modifier = Modifier) {
     FloatingPlayerBar(
         surahNumber = player.surah,
         title = player.surahName,
@@ -156,7 +157,7 @@ private fun MiniPlayer(player: MiniPlayerUi, actions: MiniPlayerActions) {
         onTogglePlay = actions.onTogglePlay,
         onNext = actions.onNext,
         onExpand = actions.onExpand,
-        modifier = Modifier.testTag("mini_player"),
+        modifier = modifier.testTag("mini_player"),
     )
 }
 

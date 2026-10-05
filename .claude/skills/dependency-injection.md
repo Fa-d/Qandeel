@@ -1,7 +1,8 @@
 # Dependency Injection
 
-Hilt 2.51. Each app has its own modules; `:core:data` adapters are bound there. `:core:domain` and
-`:core:testing` know nothing about Hilt.
+Hilt, in the Android apps only. Each app has its own modules; `:core:data` adapters are bound
+there. `:core:domain`, `:shared` and `:core:testing` know nothing about Hilt: the shared UI gets its
+ports through the `QandeelGraph` interface.
 
 ## Phone (`app/src/main/java/dev/sadakat/qandeel/di/`)
 
@@ -20,7 +21,12 @@ Hilt 2.51. Each app has its own modules; `:core:data` adapters are bound there. 
 - `MediaSession` (`@Singleton`) — over `ExoQuranPlayer.sessionPlayer` so notification
   next/previous move by ayah; injected into `service/QuranPlaybackService`
 
-**`WatchModule.kt`** (`@Binds`): `WatchLink` as `WatchConnection`.
+**`WatchModule.kt`** (`@Binds`): `WatchLink` as `WatchConnection` (a domain port).
+
+**`AndroidQandeelGraph.kt`** (`app/src/main/java/dev/sadakat/qandeel/`): a `@Singleton` with an
+`@Inject constructor` taking every port (`QuranText`, `QuranSettings`, `SurahDownloads`,
+`QuranPlayer`, `ListeningHistory`, `AudioTimings`, `WordMeanings`, `WatchConnection`); it
+implements `:shared`'s `QandeelGraph`. `MainActivity` injects it and passes it to `QandeelApp`.
 
 ## Watch (`wear/src/main/java/dev/sadakat/qandeel/wear/di/`)
 
@@ -38,10 +44,13 @@ itself in `service/QuranPlaybackService` (released in `onDestroy`).
   `@AndroidEntryPoint`
 
 ## ViewModels
-`@HiltViewModel` + `@Inject constructor`, resolved by `hiltViewModel()` in the `*Route`
-composables. Constructors take **ports only** (`QuranText`, `QuranSettings`, `SurahDownloads`,
-`QuranPlayer`; the reader also takes the app-local `WatchConnection`) plus `SavedStateHandle`.
-No `Context` in ViewModel constructors (checked by `ViewModelArchitectureTest`).
+- Phone (`:shared`): plain classes whose constructors take **ports only** (plus a
+  `SavedStateHandle` or a clock where needed). `shared/src/commonMain/kotlin/dev/sadakat/qandeel/shared/app/ViewModels.kt`
+  builds each from the `QandeelGraph` with a `viewModel { }` factory, scoped to the destination
+  that asks for it. No DI library crosses platforms; on iOS a Kotlin object will implement the graph.
+- Watch (`:wear`): `@HiltViewModel` + `@Inject constructor`, resolved by `hiltViewModel()` in the
+  `*Route` composables; ports only.
+- No `Context` in ViewModel constructors (checked by `ViewModelArchitectureTest`).
 
 ## Testing
 Tests construct ViewModels directly with the `:core:testing` fakes — no Hilt in unit tests.
