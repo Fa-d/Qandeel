@@ -9,7 +9,7 @@ so the same UI ships on iOS. Wear OS keeps its own UI.
 | Question | Decision |
 | --- | --- |
 | iOS | **Kotlin Multiplatform + Compose Multiplatform.** The domain and data move to KMP and the phone UI to Compose Multiplatform, so the redesign is written once. iOS gets thin platform adapters (AVPlayer audio, URLSession downloads, Now Playing). |
-| Visual concept | **Celestial Lamp.** A deep night sky with drifting star dust and depth parallax. A 3D qandeel (the logo's octagram lamp) floats, turns and breathes light, and its flame pulses with each recited word. Gold light on deep green and indigo. |
+| Visual concept | **Celestial Lamp.** A deep night sky with drifting star dust and depth parallax. A 3D qandeel woven from strings of light floats over the pool of light it casts: its star-shaped rings breathe, twist and vibrate, and its heart swells with each recited word. Gold light on deep green and indigo. |
 | 3D rendering | **Compose shaders + Canvas.** GPU shaders (AGSL on Android 13+, SkSL through Skiko on iOS and desktop) and Canvas-projected 3D geometry. No 3D engine and no WebView. |
 | Styles | **One signature look.** The Mushaf, Material, Expressive and Glass styles and the Appearance style picker go away. What remains is Theme (Auto, Light, Dark) and Reduce motion. |
 | Navigation | **3 tabs + floating player:** Home, Quran, You. The reader and the full player open over the tabs. |
@@ -49,10 +49,13 @@ Where every existing feature goes:
 - **Depth layers, back to front:** the sky shader (a gradient plus slow noise nebula) → star dust
   particles (3 parallax planes, which move with scroll and, if allowed, with the gyroscope) → the
   lamp (3D) → glass content cards → chrome.
-- **The lamp:** the octagram glass is extruded into a 3D star prism, projected in Canvas with a
-  small perspective matrix and lit from the flame. The flame is a shader (an animated noise
-  teardrop). It breathes when idle and pulses on each word onset from `WordPointer`, so it needs no
-  audio analysis and works the same on iOS.
+- **The lamp** (approved after a first version, a glass prism on a chain with a flame, read as "a
+  fiery key ring"): a floating lantern of strings of light, projected in 3D on a Canvas. Its rings
+  follow a qandeel's swell, each the rub el hizb softened into an eight-lobed flower; they breathe
+  between star and circle, twist, and vibrate in standing waves, with two closed strings orbiting
+  and beads of light running along them. Each word onset from `WordPointer` raises its energy
+  (deeper vibration, faster beads, a brighter heart), so it needs no audio analysis and works the
+  same on iOS.
 - **Colour:** night indigo `#0B1026` to deep green `#0E3B2E` for the sky, mushaf gold `#D4A84B` for
   light, warm paper `#F3EBDD` for text on dark. The light theme is a "dawn" sky (pale gold to
   paper) with the same structure.
@@ -115,10 +118,12 @@ start, and the Android-only code stays where it is until something replaces it.
 ### Phase 2: Celestial design system + 3D
 - Tokens (colour, type, motion) and `CelestialTheme` in `:shared`. The old skins, glass/Haze and
   the style picker are deleted in Phase 4, with the screens that use them.
-- `SkyBackground` (shader + fallback), `StarDust` (parallax particles), `QandeelLamp` (3D octagram
-  prism + flame shader, driven by `idle | playing(wordOnsets) | reduced`), the glass card, the
-  floating tab bar and the floating player shell.
-- A gallery screen (debug only) and desktop goldens of every component in dark and light.
+- `CelestialSky` (one shader with the nebula, glow and three star planes, and a drawn fallback),
+  `QandeelLamp` (the string lantern, driven by `LampMotion(time, energy, tilt)`), the glass
+  surface, the octagram badge, the play button, search, pill tabs, the floating tab bar and mini
+  player, and Qandeel's own icons.
+- Concept goldens of Home (night and dawn) and the Quran tab, and a frame recorder for reviewing
+  the motion as a video.
 - **Ask:** rendered screenshots go to the user for approval of the look before the screens are
   rebuilt.
 

@@ -35,6 +35,16 @@ kotlin {
         }
     }
 
+    // iOS and the JVM both draw through Skia (Skiko): what talks to Skia directly is written once.
+    applyDefaultHierarchyTemplate {
+        common {
+            group("skiko") {
+                withJvm()
+                group("ios") { withIos() }
+            }
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(project(":core:domain"))
