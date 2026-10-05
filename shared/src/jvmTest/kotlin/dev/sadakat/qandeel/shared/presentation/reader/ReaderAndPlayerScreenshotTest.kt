@@ -119,12 +119,12 @@ class ReaderAndPlayerScreenshotTest {
     }
 
     @Test
-    fun lyricsWhilePlaying() = phoneSnapshot("reader_lyrics_night", night = true) {
+    fun lyricsWhilePlaying() = phoneSnapshot("reader_lyrics_night", night = true, reduceMotion = true) {
         ReaderScreen(reading.copy(playingAyah = 2), WordPointer.Reciting(4), ReaderActions(), bottomPadding = BAR)
     }
 
     @Test
-    fun wordByWord() = phoneSnapshot("reader_word_by_word_night", night = true) {
+    fun wordByWord() = phoneSnapshot("reader_word_by_word_night", night = true, reduceMotion = true) {
         ReaderScreen(
             reading.copy(playingAyah = 2, wordMeanings = mapOf(2 to meanings2)),
             WordPointer.Reciting(2),
@@ -149,12 +149,12 @@ class ReaderAndPlayerScreenshotTest {
     )
 
     @Test
-    fun playerNight() = phoneSnapshot("player_night", night = true) {
+    fun playerNight() = phoneSnapshot("player_night", night = true, reduceMotion = true) {
         PlayerScreen(playing, WordPointer.Reciting(4), { PlaybackProgress(0, 83_000, 1_420_000) }, PlayerActions())
     }
 
     @Test
-    fun playerDawn() = phoneSnapshot("player_dawn", night = false) {
+    fun playerDawn() = phoneSnapshot("player_dawn", night = false, reduceMotion = true) {
         PlayerScreen(
             playing.copy(ayahMeanings = emptyList()),
             WordPointer.Reciting(1),

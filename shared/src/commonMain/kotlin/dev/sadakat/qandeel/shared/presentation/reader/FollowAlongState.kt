@@ -13,6 +13,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import dev.sadakat.qandeel.shared.designsystem.Celestial
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -50,15 +51,20 @@ internal fun recitingAyahIndex(headerCount: Int, ayah: Int): Int = if (ayah < 1)
 /** Where the reciting ayah's top settles: this far down the list's height, the lyrics line. */
 internal const val LYRICS_LINE = 0.26f
 
-/** Scrolls [listState] so the reciting [ayah]'s item sits on the lyrics line. */
-internal suspend fun LazyListState.scrollToReciting(headerCount: Int, ayah: Int) {
-    val viewport = layoutInfo.viewportSize.height
-    animateScrollToItem(recitingAyahIndex(headerCount, ayah), scrollOffset = -(viewport * LYRICS_LINE).toInt())
+/**
+ * Scrolls [listState] so the reciting [ayah]'s item sits on the lyrics line: a glide, or a jump if
+ * not [animate].
+ */
+internal suspend fun LazyListState.scrollToReciting(headerCount: Int, ayah: Int, animate: Boolean) {
+    val index = recitingAyahIndex(headerCount, ayah)
+    val offset = -(layoutInfo.viewportSize.height * LYRICS_LINE).toInt()
+    if (animate) animateScrollToItem(index, offset) else scrollToItem(index, offset)
 }
 
 /**
  * The follow-along state of one reader list: while following (and the setting allows it), each
- * new reciting ayah glides onto the lyrics line; a user drag cancels that scroll and pauses following.
+ * new reciting ayah glides onto the lyrics line (jumps there, with Reduce motion); a user drag
+ * cancels that scroll and pauses following.
  */
 @Composable
 fun rememberFollowAlongState(
@@ -69,10 +75,11 @@ fun rememberFollowAlongState(
 ): FollowAlongState {
     val state = remember { FollowAlongState() }
     val currentEnabled by rememberUpdatedState(enabled)
+    val glide = !Celestial.reduceMotion
     LaunchedEffect(playingAyah, headerCount) {
         val ayah = playingAyah ?: return@LaunchedEffect
         if (!currentEnabled || !state.following) return@LaunchedEffect
-        val scroll = launch { listState.scrollToReciting(headerCount, ayah) }
+        val scroll = launch { listState.scrollToReciting(headerCount, ayah, animate = glide) }
         // A drag mid-flight must win over the auto-scroll, not fight it.
         launch {
             snapshotFlow { state.following }.first { !it }

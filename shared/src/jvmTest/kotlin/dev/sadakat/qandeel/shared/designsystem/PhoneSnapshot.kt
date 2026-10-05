@@ -20,13 +20,16 @@ internal const val GOLDEN_SECONDS = 3.2f
 
 /**
  * Renders [content] in a Celestial phone at [seconds] into the golden `name.png`. The sky's clock
- * is held still, so the frame is the same on every run.
+ * is held still, so the frame is the same on every run. [reduceMotion] settles the screen's own
+ * animations (scrolls, the word pulse) at once: each frame they would run draws the whole sky on
+ * the CPU here, which is what makes an animated golden slow.
  */
 @OptIn(ExperimentalTestApi::class, ExperimentalRoborazziApi::class)
 internal fun phoneSnapshot(
     name: String,
     night: Boolean,
     seconds: Float = GOLDEN_SECONDS,
+    reduceMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) = runDesktopComposeUiTest(
     width = (PHONE_WIDTH_DP * PHONE_DENSITY).toInt(),
@@ -34,7 +37,7 @@ internal fun phoneSnapshot(
 ) {
     setContent {
         CompositionLocalProvider(LocalDensity provides Density(PHONE_DENSITY)) {
-            CelestialTheme(night = night, clock = { seconds }, content = content)
+            CelestialTheme(night = night, reduceMotion = reduceMotion, clock = { seconds }, content = content)
         }
     }
     onRoot().captureRoboImage("src/jvmTest/screenshots/$name.png")

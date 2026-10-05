@@ -34,6 +34,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * The whole shared app over fakes, as a user walks it: onboarding, the tabs, a surah in the
@@ -72,7 +73,8 @@ class QandeelAppTest {
     }
 
     private fun app(graph: TestGraph, platform: TestPlatform = TestPlatform(), test: ComposeUiTest.() -> Unit) =
-        runDesktopComposeUiTest(width = WIDTH, height = HEIGHT) {
+        // A walk draws a few hundred frames of the sky on the CPU: more than runTest's default minute on CI.
+        runDesktopComposeUiTest(width = WIDTH, height = HEIGHT, testTimeout = WALK_TIMEOUT) {
             // The sky's clock runs for as long as motion is on, so the UI is never idle on its own:
             // the test moves time forward itself after every step.
             mainClock.autoAdvance = false
@@ -223,5 +225,6 @@ class QandeelAppTest {
         const val HEIGHT = (892 * DENSITY).toInt()
         const val NOW = 1_700_000_000_000L
         const val SETTLE_MS = 600L
+        val WALK_TIMEOUT = 5.minutes
     }
 }

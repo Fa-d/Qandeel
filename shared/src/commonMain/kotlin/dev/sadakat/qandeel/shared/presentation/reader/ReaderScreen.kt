@@ -65,6 +65,7 @@ import dev.sadakat.qandeel.shared.designsystem.kit.GlyphButton
 import dev.sadakat.qandeel.shared.designsystem.kit.OctagramBadge
 import dev.sadakat.qandeel.shared.designsystem.kit.PillTabs
 import dev.sadakat.qandeel.shared.designsystem.kit.PlayButton
+import dev.sadakat.qandeel.shared.designsystem.motionSpec
 import dev.sadakat.qandeel.shared.presentation.components.CenteredMessage
 import dev.sadakat.qandeel.shared.presentation.components.RecitedArabicText
 import dev.sadakat.qandeel.shared.presentation.components.WordByWordText
@@ -191,7 +192,7 @@ private const val TOP_BAR_SOLID = 0.6f
 private fun TopBar(state: SurahReaderUiState, listState: LazyListState, actions: ReaderActions) {
     val colors = Celestial.colors
     val scrolled by remember { derivedStateOf { listState.firstVisibleItemIndex > 0 } }
-    val titleAlpha by animateFloatAsState(if (scrolled) 1f else 0f)
+    val titleAlpha by animateFloatAsState(if (scrolled) 1f else 0f, motionSpec())
     Box(
         Modifier
             .fillMaxWidth()
@@ -374,9 +375,9 @@ private fun AyahItem(
     val colors = Celestial.colors
     val surahPlaying = state.playingAyah != null
     val reciting = ayah.number == state.playingAyah
-    val alpha by animateFloatAsState(if (!surahPlaying || reciting) 1f else FADED_ALPHA)
-    val scale by animateFloatAsState(if (surahPlaying && !reciting) FADED_SCALE else 1f)
-    val glow by animateFloatAsState(if (reciting) 1f else 0f)
+    val alpha by animateFloatAsState(if (!surahPlaying || reciting) 1f else FADED_ALPHA, motionSpec())
+    val scale by animateFloatAsState(if (surahPlaying && !reciting) FADED_SCALE else 1f, motionSpec())
+    val glow by animateFloatAsState(if (reciting) 1f else 0f, motionSpec())
     val number = stringResource(Res.string.ayah_cd_number, ayah.number)
     val recitingState = stringResource(Res.string.reciting_ayah_state)
     Column(
@@ -473,6 +474,7 @@ private fun JumpToReciting(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val glide = !Celestial.reduceMotion
     val offScreen by remember(playingAyah, enabled) {
         derivedStateOf {
             val ayah = playingAyah ?: return@derivedStateOf false
@@ -495,7 +497,7 @@ private fun JumpToReciting(
                     val ayah = playingAyah ?: return@clickable
                     scope.launch {
                         follow.resume()
-                        listState.scrollToReciting(HEADER_COUNT, ayah)
+                        listState.scrollToReciting(HEADER_COUNT, ayah, animate = glide)
                     }
                 }
                 .testTag("jump_to_reciting"),

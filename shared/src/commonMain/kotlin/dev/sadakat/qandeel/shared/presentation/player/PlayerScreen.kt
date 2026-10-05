@@ -276,14 +276,15 @@ private fun OptionPill(label: String, active: Boolean, tag: String, onClick: () 
 
 /**
  * The lantern's energy: a swell on each newly recited word that eases back down, so the light
- * breathes with the recitation. Idle when nothing is being recited.
+ * breathes with the recitation. Idle when nothing is being recited, and with Reduce motion.
  */
 @Composable
 private fun rememberWordPulse(pointer: WordPointer): Animatable<Float, *> {
     val pulse = remember { Animatable(PULSE_REST) }
     val word = (pointer as? WordPointer.Reciting)?.word
-    LaunchedEffect(word) {
-        if (word != null) {
+    val breathe = !Celestial.reduceMotion
+    LaunchedEffect(word, breathe) {
+        if (word != null && breathe) {
             pulse.snapTo(1f)
             pulse.animateTo(PULSE_REST, tween(PULSE_MS))
         }
